@@ -1,0 +1,21 @@
+syntax = "proto3";
+package api.error.v1;
+import "errors/errors.proto";
+option go_package = "github.com/realotz/mstore/api/errors/v1;errors";
+
+// 异常错误
+enum AuthErrorReason {
+  // 系统未知错误
+  option (errors.default_code) = 500;
+  UNKNOWN_ERROR = 0;
+  // 未登陆
+  NOT_LOGIN = 1 [(errors.code) = 401];
+  // 无权限
+  NOT_AUTHORITY = 2 [(errors.code) = 403];
+  // 参数错误
+  BUSINESS_ERROR = 3 [(errors.code) = 400];
+  // 参数错误
+  PARAMS_ERROR = 6 [(errors.code) = 412];
+  // 请求需要先决条件
+  PRECONDITION_REQUIRED = 7 [(errors.code) = 428];
+}

@@ -1,0 +1,550 @@
+consumes:
+- application/json
+definitions:
+  protobufAny:
+    properties:
+      type_url:
+        type: string
+      value:
+        format: byte
+        type: string
+    type: object
+  rpcStatus:
+    properties:
+      code:
+        format: int32
+        type: integer
+      details:
+        items:
+          $ref: '#/definitions/protobufAny'
+        type: array
+      message:
+        type: string
+    type: object
+  v1CaptchaReply:
+    properties:
+      img_base64:
+        description: base64格式图片数据流
+        title: base64格式图片数据流
+        type: string
+    type: object
+  v1CreateUserReq:
+    description: 创建用户请求
+    properties:
+      name:
+        description: 名称
+        title: 名称
+        type: string
+      password:
+        description: 密码
+        title: 密码
+        type: string
+      role:
+        description: 角色
+        title: 角色
+        type: string
+    title: 创建用户请求
+    type: object
+  v1Empty:
+    description: 空消息
+    title: 空消息
+    type: object
+  v1ListOption:
+    description: 列表公用查询条件
+    properties:
+      order_desc:
+        description: 是否倒序 true desc false asc
+        title: 是否倒序 true desc false asc
+        type: boolean
+      order_field:
+        description: 排序字段
+        title: 排序字段
+        type: string
+      page:
+        description: 页码
+        format: int64
+        title: 页码
+        type: integer
+      page_size:
+        description: 分页大小
+        format: int64
+        title: 分页大小
+        type: integer
+    title: 列表公用查询条件
+    type: object
+  v1LoginReq:
+    description: 登录请求
+    properties:
+      account:
+        description: 账号/手机号/邮箱
+        title: 账号/手机号/邮箱
+        type: string
+      code:
+        description: 验证码
+        title: 验证码
+        type: string
+      passwd:
+        description: 密码 非空为密码登录
+        title: 密码 非空为密码登录
+        type: string
+      sms_code:
+        description: 手机/邮箱验证码
+        title: 手机/邮箱验证码
+        type: string
+      uuid:
+        description: uuid
+        title: uuid
+        type: string
+    title: 登录请求
+    type: object
+  v1LoginToken:
+    description: 登录信息
+    properties:
+      account:
+        $ref: '#/definitions/v1User'
+        description: 账户信息
+        title: 账户信息
+      token:
+        description: jwt 登录token
+        title: jwt 登录token
+        type: string
+      token_expires:
+        description: token过期时间
+        title: token过期时间
+        type: string
+    title: 登录信息
+    type: object
+  v1NewPasswdReq:
+    description: 修改密码请求
+    properties:
+      account:
+        description: 账号
+        title: 账号
+        type: string
+      code:
+        description: 验证码 验证码原密码二选一
+        title: 验证码 验证码原密码二选一
+        type: string
+      old_passwd:
+        description: 原密码 验证码原密码二选一
+        title: 原密码 验证码原密码二选一
+        type: string
+      passwd:
+        description: 新密码
+        title: 新密码
+        type: string
+      passwd_confirm:
+        description: 重复新密码
+        title: 重复新密码
+        type: string
+    title: 修改密码请求
+    type: object
+  v1User:
+    description: 用户信息
+    properties:
+      authority:
+        description: 权限列表
+        items:
+          type: string
+        title: 权限列表
+        type: array
+      created_at:
+        description: 创建时间
+        format: date-time
+        title: 创建时间
+        type: string
+      id:
+        description: 用户id
+        format: int64
+        title: 用户id
+        type: integer
+      last_ip:
+        description: 最后记录ip
+        title: 最后记录ip
+        type: string
+      last_login_time:
+        description: 最后登陆时间
+        format: date-time
+        title: 最后登陆时间
+        type: string
+      name:
+        description: 名称
+        title: 名称
+        type: string
+      role:
+        description: 角色
+        title: 角色
+        type: string
+      updated_at:
+        description: 更新时间
+        format: date-time
+        title: 更新时间
+        type: string
+    title: 用户信息
+    type: object
+  v1UserListReply:
+    description: 用户列表
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1User'
+        type: array
+      total:
+        format: int64
+        type: string
+    title: 用户列表
+    type: object
+  volumeCreateVolumeReq:
+    properties:
+      name:
+        description: 卷名
+        title: 卷名
+        type: string
+      provider:
+        description: 供应类型 local 本地 s3 oss cos nfs
+        title: 供应类型 local 本地 s3 oss cos nfs
+        type: string
+      provider_config:
+        description: 配置 json string
+        title: 配置 json string
+        type: string
+    type: object
+  volumeListVolumeReply:
+    description: 存储卷列表
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/volumeVolume'
+        type: array
+      total:
+        format: int64
+        type: string
+    title: 存储卷列表
+    type: object
+  volumeVolume:
+    properties:
+      created_at:
+        description: 创建时间
+        format: date-time
+        title: 创建时间
+        type: string
+      name:
+        description: 卷名
+        title: 卷名
+        type: string
+      provider:
+        description: 供应类型 local 本地 s3 oss cos nfs
+        title: 供应类型 local 本地 s3 oss cos nfs
+        type: string
+      provider_config:
+        description: 配置 json string
+        title: 配置 json string
+        type: string
+      updated_at:
+        description: 更新时间
+        format: date-time
+        title: 更新时间
+        type: string
+    type: object
+host: 127.0.0.1:8000
+info:
+  description: kratos 2.0 demo
+  title: mstore
+  version: 1.0.0
+paths:
+  /api/v1/captcha:
+    get:
+      operationId: AuthService_Captcha
+      parameters:
+      - description: uuid.
+        in: query
+        name: uuid
+        required: false
+        type: string
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1CaptchaReply'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 图形验证码
+      tags:
+      - AuthService
+  /api/v1/login:
+    post:
+      operationId: AuthService_Login
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1LoginReq'
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1LoginToken'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 登录
+      tags:
+      - AuthService
+  /api/v1/login/refresh:
+    post:
+      operationId: AuthService_RefreshToken
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1Empty'
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1LoginToken'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 刷新登录token
+      tags:
+      - AuthService
+  /api/v1/user:
+    delete:
+      operationId: UserService_DelUser
+      parameters:
+      - collectionFormat: multi
+        in: query
+        items:
+          format: int64
+          type: integer
+        name: ids
+        required: false
+        type: array
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Empty'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 删除用户
+      tags:
+      - UserService
+    get:
+      operationId: UserService_ListUser
+      parameters:
+      - in: query
+        name: keyword
+        required: false
+        type: string
+      - in: query
+        name: role
+        required: false
+        type: string
+      - description: 排序字段.
+        in: query
+        name: option.order_field
+        required: false
+        type: string
+      - description: 是否倒序 true desc false asc.
+        in: query
+        name: option.order_desc
+        required: false
+        type: boolean
+      - description: 页码.
+        format: int64
+        in: query
+        name: option.page
+        required: false
+        type: integer
+      - description: 分页大小.
+        format: int64
+        in: query
+        name: option.page_size
+        required: false
+        type: integer
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1UserListReply'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 查询用户列表
+      tags:
+      - UserService
+    post:
+      operationId: UserService_CreateUser
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1CreateUserReq'
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1User'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 创建用户
+      tags:
+      - UserService
+  /api/v1/user/{id}:
+    get:
+      operationId: UserService_GetUser
+      parameters:
+      - format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1User'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 查询用户详情
+      tags:
+      - UserService
+    put:
+      operationId: UserService_UpdateUser
+      parameters:
+      - format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          description: 更新用户请求
+          properties:
+            name:
+              description: 名称
+              title: 名称
+              type: string
+            password:
+              description: 密码
+              title: 密码
+              type: string
+            role:
+              description: 角色
+              title: 角色
+              type: string
+          title: 更新用户请求
+          type: object
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1User'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 更新用户信息
+      tags:
+      - UserService
+  /api/v1/user/passwd:
+    put:
+      operationId: AuthService_NewPasswd
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1NewPasswdReq'
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Empty'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 修改密码
+      tags:
+      - AuthService
+  /api/v1/volume:
+    get:
+      operationId: VolumeService_ListVolume
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/volumeListVolumeReply'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 存储卷列表
+      tags:
+      - VolumeService
+    post:
+      operationId: VolumeService_CreateVolume
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/volumeCreateVolumeReq'
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/volumeVolume'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 创建存储卷
+      tags:
+      - VolumeService
+  /api/v1/volume/{id}:
+    delete:
+      operationId: VolumeService_DeleteVolume
+      parameters:
+      - in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Empty'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      summary: 删除存储卷
+      tags:
+      - VolumeService
+produces:
+- application/json
+schemes:
+- http
+swagger: "2.0"
+tags:
+- name: UserService

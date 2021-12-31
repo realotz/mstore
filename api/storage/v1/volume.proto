@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package api.service.storage.v1.volume;
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "api/core/v1/core.proto";
+import "validate/validate.proto";
+option go_package = "github.com/realotz/mstore/api/service/storage/v1;storageV1";
+
+// 虚拟卷
+// 映射本地磁盘目录 远程存储等等
+service VolumeService {
+  // 创建存储卷
+  rpc CreateVolume(CreateVolumeReq)returns(Volume){
+    option (google.api.http) = {
+      post: "/api/v1/volume",
+      body: "*"
+    };
+  }
+  // 删除存储卷
+  rpc DeleteVolume(DeleteVolumeReq)returns(core.v1.Empty){
+    option (google.api.http) = {
+      delete: "/api/v1/volume/{id}",
+    };
+  }
+  // 存储卷列表
+  rpc ListVolume(ListVolumeReq)returns(ListVolumeReply){
+    option (google.api.http) = {
+      get: "/api/v1/volume",
+    };
+  }
+}
+
+// 存储卷列表请求
+message ListVolumeReq{}
+
+// 存储卷列表
+message ListVolumeReply{
+  repeated Volume list = 1;
+  int64 total = 2;
+}
+
+message DeleteVolumeReq{
+  string id = 1;
+}
+
+message CreateVolumeReq{
+  // 卷名
+  string name = 1;
+  // 供应类型 local 本地 s3 oss cos nfs
+  string provider = 2;
+  // 配置 json string
+  string provider_config = 3;
+}
+
+message Volume{
+  // 卷名
+  string name = 1;
+  // 供应类型 local 本地 s3 oss cos nfs
+  string provider = 2;
+  // 配置 json string
+  string provider_config = 3;
+  // 创建时间
+  google.protobuf.Timestamp created_at = 7;
+  // 更新时间
+  google.protobuf.Timestamp updated_at = 8;
+}

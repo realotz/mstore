@@ -1,0 +1,49 @@
+syntax = "proto3";
+// core is comm model message
+package api.core.v1;
+import "google/protobuf/timestamp.proto";
+option go_package = "github.com/realotz/mstore/api/core/v1;coreV1";
+
+// 列表公用查询条件
+message ListOption{
+  // 排序字段
+  string order_field = 96;
+  // 是否倒序 true desc false asc
+  bool order_desc = 97;
+  // 页码
+  uint32 page = 98;
+  // 分页大小
+  uint32 page_size = 99;
+}
+
+// 用户信息
+message User{
+  // 用户id
+  uint32 id = 1;
+  // 名称
+  string name = 2;
+  // 最后记录ip
+  string last_ip = 3;
+  // 最后登陆时间
+  google.protobuf.Timestamp last_login_time = 4;
+  // 角色
+  string role = 5;
+  // 权限列表
+  repeated string authority = 6;
+  // 创建时间
+  google.protobuf.Timestamp created_at = 7;
+  // 更新时间
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// 空消息
+message Empty{}
+
+// id
+message Id{
+  uint32 id=1;
+}
+
+message Ids{
+  repeated uint32 ids=1;
+}

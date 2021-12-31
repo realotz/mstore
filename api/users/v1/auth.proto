@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package api.service.users.v1;
+import "google/api/annotations.proto";
+import "api/core/v1/core.proto";
+import "validate/validate.proto";
+option go_package = "github.com/realotz/mstore/api/auth/v1;userV1";
+
+// 认证授权相关
+service AuthService {
+  // 图形验证码
+  rpc Captcha(CaptchaReq)returns(CaptchaReply){
+    option (google.api.http) = {
+      get: "/api/v1/auth/captcha",
+    };
+  };
+  //登录
+  rpc Login(LoginReq)returns(LoginToken){
+    option (google.api.http) = {
+      post: "/api/v1/auth",
+      body: "*"
+    };
+  };
+  //刷新登录token
+  rpc RefreshToken (api.core.v1.Empty) returns (LoginToken){
+    option (google.api.http) = {
+      post: "/api/v1/auth/refresh",
+      body: "*"
+    };
+  };
+  //修改密码
+  rpc NewPasswd(NewPasswdReq)returns(api.core.v1.Empty){
+    option (google.api.http) = {
+      put: "/api/v1/auth/passwd",
+      body: "*"
+    };
+  };
+}
+
+// 修改密码请求
+message NewPasswdReq{
+  // 账号
+  string account = 1 [(validate.rules).string.min_len = 4];
+  // 新密码
+  string passwd = 3 [(validate.rules).string.min_len = 6];
+  // 重复新密码
+  string passwd_confirm = 4 [(validate.rules).string.min_len = 6];
+  // 原密码
+  string old_passwd = 5;
+}
+
+// 登录信息
+message LoginToken{
+  // jwt 登录token
+  string token = 1;
+  // token过期时间
+  string token_expires = 2;
+  // 账户信息
+  core.v1.User user_info = 3;
+}
+
+// 登录请求
+message LoginReq{
+  // 账号/手机号/邮箱
+  string account = 1 [(validate.rules).string.min_len = 4];
+  // 密码 非空为密码登录
+  string passwd = 2;
+  // 验证码
+  string code = 3;
+  // uuid
+  string uuid = 4;
+}
+
+message CaptchaReq{
+  // uuid
+  string uuid = 1;
+}
+
+message CaptchaReply{
+  // base64格式图片数据流
+  string img_base64 = 1;
+}

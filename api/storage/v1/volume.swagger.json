@@ -1,0 +1,211 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/storage/v1/volume.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "VolumeService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/volume": {
+      "get": {
+        "summary": "存储卷列表",
+        "operationId": "VolumeService_ListVolume",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/volumeListVolumeReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "VolumeService"
+        ]
+      },
+      "post": {
+        "summary": "创建存储卷",
+        "operationId": "VolumeService_CreateVolume",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/volumeVolume"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/volumeCreateVolumeReq"
+            }
+          }
+        ],
+        "tags": [
+          "VolumeService"
+        ]
+      }
+    },
+    "/api/v1/volume/{id}": {
+      "delete": {
+        "summary": "删除存储卷",
+        "operationId": "VolumeService_DeleteVolume",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Empty"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "VolumeService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1Empty": {
+      "type": "object",
+      "description": "空消息",
+      "title": "空消息"
+    },
+    "volumeCreateVolumeReq": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "卷名",
+          "title": "卷名"
+        },
+        "provider": {
+          "type": "string",
+          "description": "供应类型 local 本地 s3 oss cos nfs",
+          "title": "供应类型 local 本地 s3 oss cos nfs"
+        },
+        "provider_config": {
+          "type": "string",
+          "description": "配置 json string",
+          "title": "配置 json string"
+        }
+      }
+    },
+    "volumeListVolumeReply": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/volumeVolume"
+          }
+        },
+        "total": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "存储卷列表",
+      "title": "存储卷列表"
+    },
+    "volumeVolume": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "卷名",
+          "title": "卷名"
+        },
+        "provider": {
+          "type": "string",
+          "description": "供应类型 local 本地 s3 oss cos nfs",
+          "title": "供应类型 local 本地 s3 oss cos nfs"
+        },
+        "provider_config": {
+          "type": "string",
+          "description": "配置 json string",
+          "title": "配置 json string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "创建时间",
+          "title": "创建时间"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "更新时间",
+          "title": "更新时间"
+        }
+      }
+    }
+  }
+}

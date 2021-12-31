@@ -1,0 +1,400 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/users/v1/user.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "UserService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/user": {
+      "get": {
+        "summary": "查询用户列表",
+        "operationId": "UserService_ListUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UserListReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "option.order_field",
+            "description": "排序字段.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "option.order_desc",
+            "description": "是否倒序 true desc false asc.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "option.page",
+            "description": "页码.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "option.page_size",
+            "description": "分页大小.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      },
+      "delete": {
+        "summary": "删除用户",
+        "operationId": "UserService_DelUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Empty"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      },
+      "post": {
+        "summary": "创建用户",
+        "operationId": "UserService_CreateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateUserReq"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/api/v1/user/{id}": {
+      "get": {
+        "summary": "查询用户详情",
+        "operationId": "UserService_GetUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      },
+      "put": {
+        "summary": "更新用户信息",
+        "operationId": "UserService_UpdateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1User"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "名称",
+                  "title": "名称"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "密码",
+                  "title": "密码"
+                },
+                "role": {
+                  "type": "string",
+                  "description": "角色",
+                  "title": "角色"
+                }
+              },
+              "description": "更新用户请求",
+              "title": "更新用户请求"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CreateUserReq": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "名称",
+          "title": "名称"
+        },
+        "password": {
+          "type": "string",
+          "description": "密码",
+          "title": "密码"
+        },
+        "role": {
+          "type": "string",
+          "description": "角色",
+          "title": "角色"
+        }
+      },
+      "description": "创建用户请求",
+      "title": "创建用户请求"
+    },
+    "v1Empty": {
+      "type": "object",
+      "description": "空消息",
+      "title": "空消息"
+    },
+    "v1ListOption": {
+      "type": "object",
+      "properties": {
+        "order_field": {
+          "type": "string",
+          "description": "排序字段",
+          "title": "排序字段"
+        },
+        "order_desc": {
+          "type": "boolean",
+          "description": "是否倒序 true desc false asc",
+          "title": "是否倒序 true desc false asc"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int64",
+          "description": "页码",
+          "title": "页码"
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "分页大小",
+          "title": "分页大小"
+        }
+      },
+      "description": "列表公用查询条件",
+      "title": "列表公用查询条件"
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "用户id",
+          "title": "用户id"
+        },
+        "name": {
+          "type": "string",
+          "description": "名称",
+          "title": "名称"
+        },
+        "last_ip": {
+          "type": "string",
+          "description": "最后记录ip",
+          "title": "最后记录ip"
+        },
+        "last_login_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "最后登陆时间",
+          "title": "最后登陆时间"
+        },
+        "role": {
+          "type": "string",
+          "description": "角色",
+          "title": "角色"
+        },
+        "authority": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "权限列表",
+          "title": "权限列表"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "创建时间",
+          "title": "创建时间"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "更新时间",
+          "title": "更新时间"
+        }
+      },
+      "description": "用户信息",
+      "title": "用户信息"
+    },
+    "v1UserListReply": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1User"
+          }
+        },
+        "total": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "用户列表",
+      "title": "用户列表"
+    }
+  }
+}
