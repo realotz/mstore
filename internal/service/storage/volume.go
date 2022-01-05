@@ -2,12 +2,15 @@ package storage
 
 import (
 	"context"
-	"github.com/go-kratos/kratos/v2/transport/http"
 	v1 "github.com/realotz/mstore/api/core/v1"
 	"github.com/realotz/mstore/api/errors"
 	storageV1 "github.com/realotz/mstore/api/storage/v1"
 	"github.com/realotz/mstore/internal/biz/storage"
+	"github.com/realotz/mstore/internal/biz/storage/provider"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	http2 "net/http"
+	"path/filepath"
+	"strings"
 )
 
 func NewVolumeService(uc *storage.StorageUseCase) *VolumeService {
@@ -16,6 +19,7 @@ func NewVolumeService(uc *storage.StorageUseCase) *VolumeService {
 	}
 }
 
+
 type VolumeService struct {
 	storageV1.UnimplementedVolumeServiceServer
 	uc *storage.StorageUseCase
@@ -23,7 +27,7 @@ type VolumeService struct {
 
 // 创建存储卷
 func (s *VolumeService) CreateVolume(ctx context.Context, req *storageV1.CreateVolumeReq) (*storageV1.Volume, error) {
-	vol,err := s.uc.CreateVolume(ctx,storage.Volume{
+	vol, err := s.uc.CreateVolume(ctx, storage.Volume{
 		Name:           req.Name,
 		ProviderName:   req.Provider,
 		ProviderConfig: []byte(req.ProviderConfig),
@@ -32,12 +36,13 @@ func (s *VolumeService) CreateVolume(ctx context.Context, req *storageV1.CreateV
 		return nil, errors.ErrorBusinessError(err.Error())
 	}
 	return &storageV1.Volume{
+		Id:             vol.Id.String(),
 		Name:           vol.Name,
 		Provider:       vol.ProviderName,
 		ProviderConfig: string(vol.ProviderConfig),
 		CreatedAt:      timestamppb.New(vol.CreatedAt),
 		UpdatedAt:      timestamppb.New(vol.UpdatedAt),
-	},nil
+	}, nil
 }
 
 func (s *VolumeService) DeleteVolume(ctx context.Context, req *storageV1.DeleteVolumeReq) (*v1.Empty, error) {
@@ -60,6 +65,7 @@ func (s *VolumeService) ListVolume(ctx context.Context, req *storageV1.ListVolum
 	}
 	for _, v := range vs {
 		resp.List = append(resp.List, &storageV1.Volume{
+			Id:             v.Id.String(),
 			Name:           v.Name,
 			Provider:       v.ProviderName,
 			ProviderConfig: string(v.ProviderConfig),
@@ -70,15 +76,40 @@ func (s *VolumeService) ListVolume(ctx context.Context, req *storageV1.ListVolum
 	return resp, nil
 }
 
-// 大文件上传
-func (s *VolumeService) BigFileUpload(ctx http.Context) error {
-	vid := ctx.Vars().Get("id")
-	if vid == "" {
-		return errors.ErrorParamsError("volume id is empty!")
-	}
-	err := s.uc.BigFileUpload(vid, ctx.Response(), ctx.Request())
+// 文件列表
+func (s *VolumeService) ListFile(ctx context.Context, req *storageV1.ListFileReq) (*storageV1.ListFileReply, error) {
+	list, err := s.uc.ListFile(ctx, req.Id, provider.ListOption{
+		Path:     req.Path,
+		HideFile: false,
+		SortFlag: 0,
+	})
 	if err != nil {
-		return errors.ErrorBusinessError(err.Error())
+		return nil, errors.ErrorBusinessError(err.Error())
 	}
-	return nil
+	var resp = &storageV1.ListFileReply{
+		List:  make([]*storageV1.File, 0, len(list)),
+		Total: int64(len(list)),
+	}
+	for _, v := range list {
+		dir, name := filepath.Split(v.Name)
+		resp.List = append(resp.List, &storageV1.File{
+			Name:      name,
+			Size:      v.Size,
+			Path:      dir,
+			Ext:       v.Ext,
+			IsDir:     v.IsDir,
+			UpdatedAt: v.UpdatedAt,
+		})
+	}
+	return resp, nil
+}
+
+func (s *VolumeService) ServeHTTP(w http2.ResponseWriter, r *http2.Request) {
+	paths := strings.Split(r.URL.String(), "/")
+	if len(paths) < 5 {
+		w.WriteHeader(400)
+		_, _ = w.Write([]byte("Invalid volume id"))
+		return
+	}
+	_ = s.uc.BigFileUpload(paths[4], w, r)
 }

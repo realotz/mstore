@@ -12,7 +12,11 @@ func Test_localProvider_List(t *testing.T) {
 	if err!=nil{
 		t.Error(err)
 	}
-	got, err := p.List(context.Background(),"real", NoSort)
+	got, err := p.List(context.Background(),ListOption{
+		Path:     "",
+		HideFile: false,
+		SortFlag: 0,
+	})
 	if err!=nil{
 		t.Error(err)
 	}

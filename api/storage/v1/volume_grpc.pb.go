@@ -25,6 +25,8 @@ type VolumeServiceClient interface {
 	DeleteVolume(ctx context.Context, in *DeleteVolumeReq, opts ...grpc.CallOption) (*v1.Empty, error)
 	// 存储卷列表
 	ListVolume(ctx context.Context, in *ListVolumeReq, opts ...grpc.CallOption) (*ListVolumeReply, error)
+	// 文件列表
+	ListFile(ctx context.Context, in *ListFileReq, opts ...grpc.CallOption) (*ListFileReply, error)
 }
 
 type volumeServiceClient struct {
@@ -62,6 +64,15 @@ func (c *volumeServiceClient) ListVolume(ctx context.Context, in *ListVolumeReq,
 	return out, nil
 }
 
+func (c *volumeServiceClient) ListFile(ctx context.Context, in *ListFileReq, opts ...grpc.CallOption) (*ListFileReply, error) {
+	out := new(ListFileReply)
+	err := c.cc.Invoke(ctx, "/api.service.storage.v1.volume.VolumeService/ListFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VolumeServiceServer is the server API for VolumeService service.
 // All implementations must embed UnimplementedVolumeServiceServer
 // for forward compatibility
@@ -72,6 +83,8 @@ type VolumeServiceServer interface {
 	DeleteVolume(context.Context, *DeleteVolumeReq) (*v1.Empty, error)
 	// 存储卷列表
 	ListVolume(context.Context, *ListVolumeReq) (*ListVolumeReply, error)
+	// 文件列表
+	ListFile(context.Context, *ListFileReq) (*ListFileReply, error)
 	mustEmbedUnimplementedVolumeServiceServer()
 }
 
@@ -87,6 +100,9 @@ func (UnimplementedVolumeServiceServer) DeleteVolume(context.Context, *DeleteVol
 }
 func (UnimplementedVolumeServiceServer) ListVolume(context.Context, *ListVolumeReq) (*ListVolumeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListVolume not implemented")
+}
+func (UnimplementedVolumeServiceServer) ListFile(context.Context, *ListFileReq) (*ListFileReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFile not implemented")
 }
 func (UnimplementedVolumeServiceServer) mustEmbedUnimplementedVolumeServiceServer() {}
 
@@ -155,6 +171,24 @@ func _VolumeService_ListVolume_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VolumeService_ListFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServiceServer).ListFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.service.storage.v1.volume.VolumeService/ListFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServiceServer).ListFile(ctx, req.(*ListFileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VolumeService_ServiceDesc is the grpc.ServiceDesc for VolumeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -173,6 +207,10 @@ var VolumeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListVolume",
 			Handler:    _VolumeService_ListVolume_Handler,
+		},
+		{
+			MethodName: "ListFile",
+			Handler:    _VolumeService_ListFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -55,6 +55,6 @@ func NewHTTPServer(c *conf.Server, logger log.Logger,
 	userV1.RegisterUserServiceHTTPServer(srv, user)
 	userV1.RegisterAuthServiceHTTPServer(srv, authV1)
 	storageV1.RegisterVolumeServiceHTTPServer(srv, volume)
-	srv.Route("/api/v1/:id").POST("big-upload", volume.BigFileUpload)
+	srv.HandlePrefix("/api/v1/big-upload",volume)
 	return srv
 }

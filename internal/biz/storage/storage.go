@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"github.com/google/wire"
+	"github.com/realotz/mstore/internal/biz/storage/provider"
 	"net/http"
 )
 
@@ -38,6 +39,15 @@ func (s *StorageUseCase) DelVolume(ctx context.Context, vid string) error {
 }
 
 // 创建存储卷
-func (s *StorageUseCase) CreateVolume(ctx context.Context, vol Volume) (*Volume,error) {
+func (s *StorageUseCase) CreateVolume(ctx context.Context, vol Volume) (*Volume, error) {
 	return s.volumeManager.CreateVolume(ctx, vol)
+}
+
+// 文件列表
+func (s *StorageUseCase) ListFile(ctx context.Context,id string, op provider.ListOption) ([]provider.FileInfo, error) {
+	volume, err := s.volumeManager.GetVolume(id)
+	if err != nil {
+		return nil, err
+	}
+	return volume.Provider.List(ctx, op)
 }

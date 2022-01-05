@@ -33,10 +33,10 @@ func NewVolumeManager(repo VolumeRepo) (*VolumeManager, error) {
 	}
 	vm := &VolumeManager{volumes: sync.Map{}, repo: repo}
 	for _, v := range vs {
-		if v.Provider, err = provider.Parse(v.ProviderName, v.ProviderConfig); err != nil {
+		if v.Provider, err = provider.Parse(v.ProviderName, v.Id.String(), v.ProviderConfig); err != nil {
 			return nil, err
 		}
-		vm.volumes.Store(v.Id, v)
+		vm.volumes.Store(v.Id.String(), &v)
 	}
 	return vm, nil
 }
@@ -82,7 +82,7 @@ func (m *VolumeManager) CreateVolume(ctx context.Context, vol Volume) (*Volume, 
 	if vol.ProviderName == "" {
 		return nil, errors.New("volume type is null")
 	}
-	pro, err := provider.Parse(vol.ProviderName, vol.ProviderConfig)
+	pro, err := provider.Parse(vol.ProviderName, vol.Id.String(), vol.ProviderConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +93,6 @@ func (m *VolumeManager) CreateVolume(ctx context.Context, vol Volume) (*Volume, 
 	if err != nil {
 		return nil, err
 	}
-	m.volumes.Store(vol.Id.String(), vol)
+	m.volumes.Store(vol.Id.String(), &vol)
 	return &vol, nil
 }

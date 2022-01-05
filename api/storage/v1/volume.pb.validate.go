@@ -33,6 +33,233 @@ var (
 	_ = anypb.Any{}
 )
 
+// Validate checks the field values on ListFileReq with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *ListFileReq) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Id
+
+	// no validation rules for Path
+
+	return nil
+}
+
+// ListFileReqValidationError is the validation error returned by
+// ListFileReq.Validate if the designated constraints aren't met.
+type ListFileReqValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListFileReqValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListFileReqValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListFileReqValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListFileReqValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListFileReqValidationError) ErrorName() string { return "ListFileReqValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ListFileReqValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListFileReq.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListFileReqValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListFileReqValidationError{}
+
+// Validate checks the field values on ListFileReply with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *ListFileReply) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetList() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListFileReplyValidationError{
+					field:  fmt.Sprintf("List[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Total
+
+	return nil
+}
+
+// ListFileReplyValidationError is the validation error returned by
+// ListFileReply.Validate if the designated constraints aren't met.
+type ListFileReplyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListFileReplyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListFileReplyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListFileReplyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListFileReplyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListFileReplyValidationError) ErrorName() string { return "ListFileReplyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ListFileReplyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListFileReply.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListFileReplyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListFileReplyValidationError{}
+
+// Validate checks the field values on File with the rules defined in the proto
+// definition for this message. If any rules are violated, an error is returned.
+func (m *File) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for Size
+
+	// no validation rules for Path
+
+	// no validation rules for Ext
+
+	// no validation rules for IsDir
+
+	// no validation rules for UpdatedAt
+
+	return nil
+}
+
+// FileValidationError is the validation error returned by File.Validate if the
+// designated constraints aren't met.
+type FileValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FileValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FileValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FileValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FileValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FileValidationError) ErrorName() string { return "FileValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FileValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFile.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FileValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FileValidationError{}
+
 // Validate checks the field values on ListVolumeReq with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -330,6 +557,8 @@ func (m *Volume) Validate() error {
 	// no validation rules for Provider
 
 	// no validation rules for ProviderConfig
+
+	// no validation rules for Id
 
 	if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {

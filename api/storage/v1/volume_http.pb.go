@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 type VolumeServiceHTTPServer interface {
 	CreateVolume(context.Context, *CreateVolumeReq) (*Volume, error)
 	DeleteVolume(context.Context, *DeleteVolumeReq) (*v1.Empty, error)
+	ListFile(context.Context, *ListFileReq) (*ListFileReply, error)
 	ListVolume(context.Context, *ListVolumeReq) (*ListVolumeReply, error)
 }
 
@@ -29,6 +30,7 @@ func RegisterVolumeServiceHTTPServer(s *http.Server, srv VolumeServiceHTTPServer
 	r.POST("/api/v1/volume", _VolumeService_CreateVolume0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/volume/{id}", _VolumeService_DeleteVolume0_HTTP_Handler(srv))
 	r.GET("/api/v1/volume", _VolumeService_ListVolume0_HTTP_Handler(srv))
+	r.GET("/api/v1/volume/{id}/files", _VolumeService_ListFile0_HTTP_Handler(srv))
 }
 
 func _VolumeService_CreateVolume0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
@@ -91,9 +93,32 @@ func _VolumeService_ListVolume0_HTTP_Handler(srv VolumeServiceHTTPServer) func(c
 	}
 }
 
+func _VolumeService_ListFile0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFileReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, "/api.service.storage.v1.volume.VolumeService/ListFile")
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFile(ctx, req.(*ListFileReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFileReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type VolumeServiceHTTPClient interface {
 	CreateVolume(ctx context.Context, req *CreateVolumeReq, opts ...http.CallOption) (rsp *Volume, err error)
 	DeleteVolume(ctx context.Context, req *DeleteVolumeReq, opts ...http.CallOption) (rsp *v1.Empty, err error)
+	ListFile(ctx context.Context, req *ListFileReq, opts ...http.CallOption) (rsp *ListFileReply, err error)
 	ListVolume(ctx context.Context, req *ListVolumeReq, opts ...http.CallOption) (rsp *ListVolumeReply, err error)
 }
 
@@ -125,6 +150,19 @@ func (c *VolumeServiceHTTPClientImpl) DeleteVolume(ctx context.Context, in *Dele
 	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/DeleteVolume"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *VolumeServiceHTTPClientImpl) ListFile(ctx context.Context, in *ListFileReq, opts ...http.CallOption) (*ListFileReply, error) {
+	var out ListFileReply
+	pattern := "/api/v1/volume/{id}/files"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/ListFile"))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
