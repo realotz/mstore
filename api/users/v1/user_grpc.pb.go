@@ -23,6 +23,8 @@ type UserServiceClient interface {
 	ListUser(ctx context.Context, in *ListUserReq, opts ...grpc.CallOption) (*UserListReply, error)
 	// 查询用户详情
 	GetUser(ctx context.Context, in *v1.Id, opts ...grpc.CallOption) (*v1.User, error)
+	//当前登陆用户信息
+	UserInfo(ctx context.Context, in *v1.Empty, opts ...grpc.CallOption) (*v1.User, error)
 	// 删除用户
 	DelUser(ctx context.Context, in *v1.Ids, opts ...grpc.CallOption) (*v1.Empty, error)
 	// 创建用户
@@ -51,6 +53,15 @@ func (c *userServiceClient) ListUser(ctx context.Context, in *ListUserReq, opts 
 func (c *userServiceClient) GetUser(ctx context.Context, in *v1.Id, opts ...grpc.CallOption) (*v1.User, error) {
 	out := new(v1.User)
 	err := c.cc.Invoke(ctx, "/api.users.v1.user.UserService/GetUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UserInfo(ctx context.Context, in *v1.Empty, opts ...grpc.CallOption) (*v1.User, error) {
+	out := new(v1.User)
+	err := c.cc.Invoke(ctx, "/api.users.v1.user.UserService/UserInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +103,8 @@ type UserServiceServer interface {
 	ListUser(context.Context, *ListUserReq) (*UserListReply, error)
 	// 查询用户详情
 	GetUser(context.Context, *v1.Id) (*v1.User, error)
+	//当前登陆用户信息
+	UserInfo(context.Context, *v1.Empty) (*v1.User, error)
 	// 删除用户
 	DelUser(context.Context, *v1.Ids) (*v1.Empty, error)
 	// 创建用户
@@ -110,6 +123,9 @@ func (UnimplementedUserServiceServer) ListUser(context.Context, *ListUserReq) (*
 }
 func (UnimplementedUserServiceServer) GetUser(context.Context, *v1.Id) (*v1.User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedUserServiceServer) UserInfo(context.Context, *v1.Empty) (*v1.User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserInfo not implemented")
 }
 func (UnimplementedUserServiceServer) DelUser(context.Context, *v1.Ids) (*v1.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelUser not implemented")
@@ -165,6 +181,24 @@ func _UserService_GetUser_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).GetUser(ctx, req.(*v1.Id))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UserInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UserInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.users.v1.user.UserService/UserInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UserInfo(ctx, req.(*v1.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -237,6 +271,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUser",
 			Handler:    _UserService_GetUser_Handler,
+		},
+		{
+			MethodName: "UserInfo",
+			Handler:    _UserService_UserInfo_Handler,
 		},
 		{
 			MethodName: "DelUser",

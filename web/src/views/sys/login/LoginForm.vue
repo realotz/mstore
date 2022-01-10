@@ -48,11 +48,8 @@
       <Button type="primary" size="large" block @click="handleLogin" :loading="loading">
         {{ t('sys.login.loginButton') }}
       </Button>
-      <!-- <Button size="large" class="mt-4 enter-x" block @click="handleRegister">
-        {{ t('sys.login.registerButton') }}
-      </Button> -->
     </FormItem>
-    <ARow class="enter-x">
+    <!-- <ARow class="enter-x">
       <ACol :md="8" :xs="24">
         <Button block @click="setLoginState(LoginStateEnum.MOBILE)">
           {{ t('sys.login.mobileSignInFormTitle') }}
@@ -68,17 +65,17 @@
           {{ t('sys.login.registerButton') }}
         </Button>
       </ACol>
-    </ARow>
+    </ARow> -->
 
-    <Divider class="enter-x">{{ t('sys.login.otherSignIn') }}</Divider>
+    <!-- <Divider class="enter-x">{{ t('sys.login.otherSignIn') }}</Divider> -->
 
-    <div class="flex justify-evenly enter-x" :class="`${prefixCls}-sign-in-way`">
+    <!-- <div class="flex justify-evenly enter-x" :class="`${prefixCls}-sign-in-way`">
       <GithubFilled />
       <WechatFilled />
       <AlipayCircleFilled />
       <GoogleCircleFilled />
       <TwitterCircleFilled />
-    </div>
+    </div> -->
   </Form>
 </template>
 <script lang="ts" setup>
@@ -135,14 +132,14 @@
     try {
       loading.value = true;
       const userInfo = await userStore.login({
-        password: data.password,
-        username: data.account,
+        passwd: data.password,
+        account: data.account,
         mode: 'none', //不要默认的错误提示
       });
       if (userInfo) {
         notification.success({
           message: t('sys.login.loginSuccessTitle'),
-          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.realName}`,
+          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.name}`,
           duration: 3,
         });
       }

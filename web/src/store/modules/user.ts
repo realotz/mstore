@@ -118,19 +118,17 @@ export const useUserStore = defineStore({
           router.addRoute(PAGE_NOT_FOUND_ROUTE as unknown as RouteRecordRaw);
           permissionStore.setDynamicAddedRoute(true);
         }
-        goHome && (await router.replace(userInfo?.homePath || PageEnum.BASE_HOME));
+        goHome && (await router.replace(PageEnum.BASE_HOME));
       }
       return userInfo;
     },
     async getUserInfoAction(): Promise<UserInfo | null> {
       if (!this.getToken) return null;
       const userInfo = await getUserInfo();
-      const { roles = [] } = userInfo;
-      if (isArray(roles)) {
-        const roleList = roles.map((item) => item.value) as RoleEnum[];
-        this.setRoleList(roleList);
+      const { role } = userInfo;
+      if (role !== '') {
+        this.setRoleList([role as RoleEnum]);
       } else {
-        userInfo.roles = [];
         this.setRoleList([]);
       }
       this.setUserInfo(userInfo);
@@ -140,13 +138,6 @@ export const useUserStore = defineStore({
      * @description: logout
      */
     async logout(goLogin = false) {
-      if (this.getToken) {
-        try {
-          await doLogout();
-        } catch {
-          console.log('注销Token失败');
-        }
-      }
       this.setToken(undefined);
       this.setSessionTimeout(false);
       this.setUserInfo(null);

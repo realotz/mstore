@@ -6,6 +6,7 @@ import (
 	"github.com/realotz/mstore/api/errors"
 	userV1 "github.com/realotz/mstore/api/users/v1"
 	"github.com/realotz/mstore/internal/biz"
+	"github.com/realotz/mstore/pkg/myctx"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -41,6 +42,19 @@ func (u UserService) ListUser(ctx context.Context, req *userV1.ListUserReq) (*us
 
 func (u UserService) GetUser(ctx context.Context, id *v1.Id) (*v1.User, error) {
 	user, err := u.user.GetUser(ctx, id.Id)
+	if err != nil {
+		return nil, errors.ErrorBusinessError(err.Error())
+	}
+	return convertUser(user), nil
+}
+
+// 当前用户登陆信息
+func (u UserService) UserInfo(ctx context.Context, id *v1.Empty) (*v1.User, error) {
+	info,err := myctx.FormUserInfo(ctx)
+	if err!=nil{
+		return nil,errors.ErrorNotLogin(err.Error())
+	}
+	user, err := u.user.GetUser(ctx, info.ID)
 	if err != nil {
 		return nil, errors.ErrorBusinessError(err.Error())
 	}

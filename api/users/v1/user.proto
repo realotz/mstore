@@ -20,6 +20,12 @@ service UserService {
       get: "/api/v1/user/{id}",
     };
   };
+  //当前登陆用户信息
+  rpc UserInfo(api.core.v1.Empty)returns(core.v1.User){
+    option (google.api.http) = {
+      get: "/api/v1/user-info",
+    };
+  };
   // 删除用户
   rpc DelUser(core.v1.Ids)returns(core.v1.Empty){
     option (google.api.http) = {
