@@ -28,6 +28,7 @@ const (
 type ListOption struct {
 	Path     string
 	HideFile bool
+	Type     uint32
 	SortFlag FileSort
 }
 
@@ -49,16 +50,16 @@ type FileInfo struct {
 	UpdatedAt int64  `json:"updated_at"`
 }
 
-func Parse(t string,id string, config []byte) (VolumeProvider, error) {
+func Parse(t string, id string, config []byte) (VolumeProvider, error) {
 	switch t {
 	case VolumeTypeLocal:
-		return NewLocalProvider(id,config)
+		return NewLocalProvider(id, config)
 	case VolumeTypeS3:
-		return NewLocalProvider(id,config)
+		return NewLocalProvider(id, config)
 	case VolumeTypeOss:
-		return NewLocalProvider(id,config)
+		return NewLocalProvider(id, config)
 	case VolumeTypeCos:
-		return NewLocalProvider(id,config)
+		return NewLocalProvider(id, config)
 	default:
 		return nil, fmt.Errorf("the provider [%s] is not implemented", t)
 	}

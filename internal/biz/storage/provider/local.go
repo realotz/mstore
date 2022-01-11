@@ -140,14 +140,41 @@ func (p *localProvider) List(ctx context.Context, req ListOption) ([]FileInfo, e
 				continue
 			}
 		}
-		list = append(list, FileInfo{
-			IsDir:     v.IsDir(),
-			Path:      req.Path,
-			Name:      v.Name(),
-			Size:      v.Size(),
-			Ext:       filepath.Ext(v.Name()),
-			UpdatedAt: v.ModTime().Unix(),
-		})
+		switch req.Type{
+		case 2:
+			if v.IsDir(){
+				list = append(list, FileInfo{
+					IsDir:     v.IsDir(),
+					Path:      req.Path,
+					Name:      v.Name(),
+					Size:      v.Size(),
+					Ext:       filepath.Ext(v.Name()),
+					UpdatedAt: v.ModTime().Unix(),
+				})
+			}
+			break
+		case 3:
+			if !v.IsDir(){
+				list = append(list, FileInfo{
+					IsDir:     v.IsDir(),
+					Path:      req.Path,
+					Name:      v.Name(),
+					Size:      v.Size(),
+					Ext:       filepath.Ext(v.Name()),
+					UpdatedAt: v.ModTime().Unix(),
+				})
+			}
+			break
+		default:
+			list = append(list, FileInfo{
+				IsDir:     v.IsDir(),
+				Path:      req.Path,
+				Name:      v.Name(),
+				Size:      v.Size(),
+				Ext:       filepath.Ext(v.Name()),
+				UpdatedAt: v.ModTime().Unix(),
+			})
+		}
 	}
 	switch req.SortFlag {
 	case NameDescSort:

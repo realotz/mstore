@@ -3,24 +3,24 @@ import type { AppRouteModule } from '/@/router/types';
 import { LAYOUT } from '/@/router/constant';
 import { t } from '/@/hooks/web/useI18n';
 
-const about: AppRouteModule = {
-  path: '/about',
-  name: 'About',
+const volume: AppRouteModule = {
+  path: '/volume',
+  name: 'Volume',
   component: LAYOUT,
-  redirect: '/about/index',
+  redirect: '/volume/index',
   meta: {
+    orderNo: 10,
     hideChildrenInMenu: true,
-    icon: 'simple-icons:about-dot-me',
-    title: t('routes.dashboard.about'),
-    orderNo: 100000,
+    icon: 'ion:grid-outline',
+    title: t('routes.volume.title'),
   },
   children: [
     {
       path: 'index',
-      name: 'AboutPage',
-      component: () => import('/@/views/sys/about/index.vue'),
+      name: 'VolumeIndex',
+      component: () => import('/@/views/volume/index.vue'),
       meta: {
-        title: t('routes.dashboard.about'),
+        title: t('routes.volume.index'),
         icon: 'simple-icons:about-dot-me',
         hideMenu: true,
       },
@@ -28,4 +28,4 @@ const about: AppRouteModule = {
   ],
 };
 
-export default about;
+export default volume;

@@ -45,6 +45,8 @@ func (m *ListFileReq) Validate() error {
 
 	// no validation rules for Path
 
+	// no validation rules for Type
+
 	return nil
 }
 

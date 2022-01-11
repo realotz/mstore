@@ -9,7 +9,6 @@ import (
 	"github.com/realotz/mstore/internal/biz/storage/provider"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	http2 "net/http"
-	"path/filepath"
 	"strings"
 )
 
@@ -18,7 +17,6 @@ func NewVolumeService(uc *storage.StorageUseCase) *VolumeService {
 		uc: uc,
 	}
 }
-
 
 type VolumeService struct {
 	storageV1.UnimplementedVolumeServiceServer
@@ -81,6 +79,7 @@ func (s *VolumeService) ListFile(ctx context.Context, req *storageV1.ListFileReq
 	list, err := s.uc.ListFile(ctx, req.Id, provider.ListOption{
 		Path:     req.Path,
 		HideFile: false,
+		Type:     req.Type,
 		SortFlag: 0,
 	})
 	if err != nil {
@@ -91,11 +90,10 @@ func (s *VolumeService) ListFile(ctx context.Context, req *storageV1.ListFileReq
 		Total: int64(len(list)),
 	}
 	for _, v := range list {
-		dir, name := filepath.Split(v.Name)
 		resp.List = append(resp.List, &storageV1.File{
-			Name:      name,
+			Name:      v.Name,
 			Size:      v.Size,
-			Path:      dir,
+			Path:      v.Path,
 			Ext:       v.Ext,
 			IsDir:     v.IsDir,
 			UpdatedAt: v.UpdatedAt,
