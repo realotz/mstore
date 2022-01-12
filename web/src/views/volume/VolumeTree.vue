@@ -1,9 +1,7 @@
 <template>
   <div class="m-2 mr-0 overflow-hidden bg-white">
     <BasicTree
-      title="存储卷"
-      toolbar
-      search
+      title="目录"
       :clickRowToExpand="false"
       :treeData="treeData"
       :load-data="onLoadData"
@@ -67,7 +65,6 @@
           };
         });
         const asyncTreeAction: TreeActionType | null = unref(asyncTreeRef);
-        console.log(asyncTreeAction);
         if (asyncTreeAction) {
           if (treeNode.children.length > 0) {
             asyncTreeAction.updateNodeByKey(treeNode.eventKey, { children: treeNode.children });

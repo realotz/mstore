@@ -17,4 +17,8 @@ export function formatToDate(date: moment.MomentInput = undefined, format = DATE
   return moment(date).format(format);
 }
 
+export function formatUnixToTime(unix: number, format = DATE_TIME_FORMAT): string {
+  return moment(unix * 1000).format(format);
+}
+
 export const dateUtil = moment;
