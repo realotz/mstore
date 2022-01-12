@@ -6,27 +6,19 @@
         <template #header>
           <div class="flex justify-end space-x-2"
             ><slot name="header"></slot>
-            <Tooltip>
-              <template #title>
-                <div class="w-25">每行显示数量</div
-                ><Slider
-                  id="slider"
-                  v-bind="sliderProp"
-                  v-model:value="grid"
-                  @change="sliderChange"
-              /></template>
-              <Button><TableOutlined /></Button>
-            </Tooltip>
             <Tooltip @click="fetch">
               <template #title>刷新</template>
               <Button><RedoOutlined /></Button>
             </Tooltip>
           </div>
         </template>
-        <template #renderItem="{ item }">
+        <template #renderItem="{ item, index }">
           <ListItem style="text-align: center">
-            <div class="file-item">
-              <Tooltip placement="bottom">
+            <div
+              :class="selectKey == index + 1 ? 'file-item-select file-item' : 'file-item'"
+              @click="selectItem(index + 1)"
+            >
+              <Tooltip placement="bottom" mouseEnterDelay="0.8">
                 <template #title>
                   <div style="font-size: 10px">
                     <span>名称{{ item.name }}</span>
@@ -67,6 +59,7 @@
 
   //每行个数
   const grid = ref(12);
+  const selectKey = ref(0);
   // slider属性
   const useSlider = (min = 6, max = 12) => {
     // 每行显示个数滑动条
@@ -183,6 +176,10 @@
     submitFunc: handleSubmit,
   });
 
+  const selectItem = (key: number) => {
+    selectKey.value = key;
+  };
+
   //表单提交
   async function handleSubmit() {
     const data = await validate();
@@ -219,12 +216,20 @@
     height: 158px;
     display: block;
   }
+  .file-item:hover {
+    background: #e6f5ff;
+    // border: 1px solid #a6daff;
+  }
   .file-item-box {
     height: 130px;
     width: 128px;
     text-align: center;
     vertical-align: bottom;
     display: table-cell;
+  }
+  .file-item-select {
+    background: #e6f5ff;
+    border: 1px solid #a6daff;
   }
   .file-item-box img {
     max-height: 128px;

@@ -10,10 +10,10 @@
       @getMethod="getMethod"
       @delete="handleDel"
     >
-      <template #header>
+      <!-- <template #header>
         <Button type="primary" color="error"> 按钮1 </Button>
         <Button type="primary" color="success"> 按钮2 </Button>
-      </template>
+      </template> -->
     </FileList>
   </PageWrapper>
 </template>
