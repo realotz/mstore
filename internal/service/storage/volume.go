@@ -96,6 +96,7 @@ func (s *VolumeService) ListFile(ctx context.Context, req *storageV1.ListFileReq
 			Path:      v.Path,
 			Ext:       v.Ext,
 			IsDir:     v.IsDir,
+			VolumeId:  req.Id,
 			UpdatedAt: v.UpdatedAt,
 		})
 	}

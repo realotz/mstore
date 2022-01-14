@@ -5,60 +5,92 @@
       :clickRowToExpand="false"
       :treeData="treeData"
       :load-data="onLoadData"
+      v-model:selectedKeys="selectedKeys"
+      v-model:expandedKeys="expandedKeys"
       ref="asyncTreeRef"
       @select="handleSelect"
     />
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent, onMounted, ref, unref } from 'vue';
+  import { defineComponent, onMounted, ref, unref, watch } from 'vue';
   import { BasicTree, TreeItem } from '/@/components/Tree';
   import { getVolumeList, volumeList } from '/@/api/mstore/volume';
+  import { pathFmt, getPathInfo } from '/@/utils/filepath';
   export default defineComponent({
     name: 'VolumeList',
     components: { BasicTree },
+    props: {
+      path: {
+        type: String,
+        require: true,
+      },
+      volumes: {
+        type: Array,
+        require: true,
+      },
+    },
     emits: ['select'],
-    setup(_, { emit }) {
+    setup(props, { emit }) {
+      watch(
+        () => props.volumes,
+        (v: string) => {
+          fetch();
+        },
+      );
+      watch(
+        () => props.path,
+        (v: string) => {
+          if (!v) {
+            return;
+          }
+          const paths = v.split('/');
+          let p = '';
+          for (let i = 1; i < paths.length; i++) {
+            p += '/' + paths[i];
+            let f = true;
+            for (let j = 0; j <= expandedKeys.value.length; j++) {
+              if (expandedKeys.value[j] == p) {
+                f = false;
+              }
+            }
+            if (f) {
+              loadTree(p);
+              expandedKeys.value.push(p);
+            }
+          }
+          selectedKeys.value = [v];
+        },
+      );
       const treeData = ref<TreeItem[]>([]);
       const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
+      const expandedKeys = ref<string[]>([]);
+      const selectedKeys = ref<string[]>([]);
+
       // 存储卷列表
       async function fetch() {
-        const res = await getVolumeList();
-        res.list.map((item) => {
+        props.volumes.map((item) => {
           treeData.value.push({
             title: item.name,
-            key: item.id,
+            key: '/' + item.id,
             icon: 'home|svg',
             isLeaf: false,
             children: [],
           });
         });
       }
-      // 异步展开存储卷
-      async function onLoadData(treeNode) {
-        console.log(treeNode.eventKey);
-        const paths = treeNode.eventKey.split('/');
-        let id = '';
-        let path = '';
-        if (paths.length == 1) {
-          id = paths[0];
-        } else {
-          id = paths[1];
-          paths.splice(0, 2);
-          path = '/' + paths.join('/');
-        }
-        const res = await volumeList(id, {
+
+      async function loadTree(key) {
+        const info = getPathInfo(key);
+        console.log(info);
+        const res = await volumeList(info[0], {
           type: 2,
-          path: path,
+          path: info[1],
         });
-        treeNode.children = res.list.map((item) => {
-          console.log(item);
-          if (item.path !== '') {
-            item.path = '/' + item.path;
-          }
+        const children = res.list.map((item) => {
           return {
             title: item.name,
-            key: '/' + id + item.path + '/' + item.name,
+            key: pathFmt('/' + info[0] + '/' + item.path + '/' + item.name),
             icon: 'home|svg',
             isLeaf: false,
             children: [],
@@ -66,24 +98,27 @@
         });
         const asyncTreeAction: TreeActionType | null = unref(asyncTreeRef);
         if (asyncTreeAction) {
-          if (treeNode.children.length > 0) {
-            asyncTreeAction.updateNodeByKey(treeNode.eventKey, { children: treeNode.children });
+          if (children.length > 0) {
+            asyncTreeAction.updateNodeByKey(key, { children: children });
           } else {
-            asyncTreeAction.updateNodeByKey(treeNode.eventKey, { isLeaf: true });
+            asyncTreeAction.updateNodeByKey(key, { isLeaf: true });
           }
-          asyncTreeAction.setExpandedKeys([
-            treeNode.eventKey,
-            ...asyncTreeAction.getExpandedKeys(),
-          ]);
+          asyncTreeAction.setExpandedKeys([key, ...asyncTreeAction.getExpandedKeys()]);
         }
       }
+
+      // 异步展开存储卷
+      async function onLoadData(treeNode) {
+        await loadTree(treeNode.eventKey);
+      }
+
       function handleSelect(keys) {
         emit('select', keys[0]);
       }
       onMounted(() => {
         fetch();
       });
-      return { treeData, handleSelect, onLoadData, asyncTreeRef };
+      return { treeData, handleSelect, onLoadData, asyncTreeRef, expandedKeys, selectedKeys };
     },
   });
 </script>

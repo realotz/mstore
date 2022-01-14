@@ -4,10 +4,10 @@
       <template #itemRender="{ route, routes: routesMatched, paths }">
         <Icon :icon="getIcon(route)" v-if="getShowBreadCrumbIcon && getIcon(route)" />
         <span v-if="!hasRedirect(routesMatched, route)">
-          {{ t(route.name || route.meta.title) }}
+          {{ t(route.name) }}
         </span>
         <router-link v-else to="" @click="handleClick(route, paths, $event)">
-          {{ t(route.name || route.meta.title) }}
+          {{ t(route.name) }}
         </router-link>
       </template>
     </a-breadcrumb>
@@ -16,9 +16,8 @@
 <script lang="ts">
   import type { RouteLocationMatched } from 'vue-router';
   import { useRouter } from 'vue-router';
-  import type { Menu } from '/@/router/types';
 
-  import { defineComponent, ref, watchEffect } from 'vue';
+  import { defineComponent, ref, watch } from 'vue';
 
   import { Breadcrumb } from 'ant-design-vue';
   import Icon from '/@/components/Icon';
@@ -33,12 +32,15 @@
   import { filter } from '/@/utils/helper/treeHelper';
 
   export default defineComponent({
-    name: 'LayoutBreadcrumb',
+    name: 'Breadcrumb',
     components: { Icon, [Breadcrumb.name]: Breadcrumb },
     props: {
-      theme: propTypes.oneOf(['dark', 'light']),
+      path: {
+        type: String,
+        require: true,
+      },
     },
-    setup() {
+    setup(props) {
       const routes = ref<RouteLocationMatched[]>([]);
       const { currentRoute } = useRouter();
       const { prefixCls } = useDesign('layout-breadcrumb');
@@ -46,65 +48,21 @@
       const go = useGo();
 
       const { t } = useI18n();
-      watchEffect(async () => {
-        if (currentRoute.value.name === REDIRECT_NAME) return;
-        const menus = await getMenus();
-
-        const routeMatched = currentRoute.value.matched;
-        const cur = routeMatched?.[routeMatched.length - 1];
-        let path = currentRoute.value.path;
-
-        if (cur && cur?.meta?.currentActiveMenu) {
-          path = cur.meta.currentActiveMenu as string;
-        }
-
-        const parent = getAllParentPath(menus, path);
-        const filterMenus = menus.filter((item) => item.path === parent[0]);
-        const matched = getMatched(filterMenus, parent) as any;
-
-        if (!matched || matched.length === 0) return;
-
-        const breadcrumbList = filterItem(matched);
-
-        if (currentRoute.value.meta?.currentActiveMenu) {
-          breadcrumbList.push({
-            ...currentRoute.value,
-            name: currentRoute.value.meta?.title || currentRoute.value.name,
-          } as unknown as RouteLocationMatched);
-        }
-        routes.value = breadcrumbList;
-      });
-
-      function getMatched(menus: Menu[], parent: string[]) {
-        const metched: Menu[] = [];
-        menus.forEach((item) => {
-          if (parent.includes(item.path)) {
-            metched.push({
-              ...item,
-              name: item.meta?.title || item.name,
-            });
+      watch(
+        () => props.path,
+        (v: string) => {
+          if (!v) {
+            return;
           }
-          if (item.children?.length) {
-            metched.push(...getMatched(item.children, parent));
-          }
-        });
-        return metched;
-      }
-
-      function filterItem(list: RouteLocationMatched[]) {
-        return filter(list, (item) => {
-          const { meta, name } = item;
-          if (!meta) {
-            return !!name;
-          }
-          const { title, hideBreadcrumb } = meta;
-          if (!title || hideBreadcrumb) {
-            return false;
-          }
-          return true;
-        }).filter((item) => !item.meta?.hideBreadcrumb);
-      }
-
+          const paths = v.split('/');
+          const r = paths.map((item) => {
+            return {
+              name: item,
+            };
+          });
+          routes.value = r;
+        },
+      );
       function handleClick(route: RouteLocationMatched, paths: string[], e: Event) {
         e?.preventDefault();
         const { children, redirect, meta } = route;

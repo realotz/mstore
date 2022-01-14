@@ -1,61 +1,87 @@
 <template>
   <div class="p-2 h-full">
     {{ sliderProp.width }}
-    <div class="p-2 bg-white h-full">
-      <List :grid="{ gutter: 16, column: 7 }" size="small" class="h-full" :data-source="data">
-        <template #header>
-          <div class="flex justify-end space-x-2"
-            ><slot name="header"></slot>
-            <Tooltip @click="fetch">
-              <template #title>刷新</template>
-              <Button><RedoOutlined /></Button>
-            </Tooltip>
-          </div>
-        </template>
-        <template #renderItem="{ item, index }">
-          <ListItem style="text-align: center">
-            <div
-              :class="selectKey == index + 1 ? 'file-item-select file-item' : 'file-item'"
-              @click="selectItem(index + 1)"
-            >
-              <Tooltip placement="bottom" mouseEnterDelay="0.8">
-                <template #title>
-                  <div style="font-size: 10px">
-                    <span>名称{{ item.name }}</span>
-                    <br />
-                    <span>大小：{{ sizeShow(item.size) }}</span>
-                    <br />
-                    <span>修改日期: {{ formatUnixToTime(item.updated_at) }}</span>
+    <div class="h-full">
+      <div
+        class="bg-white flex px-2 py-1.5 items-center basic-tree-header"
+        style="height: 48px; padding-left: 7px"
+      >
+        <RadioGroup>
+          <Tooltip @click="fetch">
+            <template #title>刷新</template>
+            <Button value="small"><LeftOutlined /></Button>
+          </Tooltip>
+          <Tooltip @click="fetch">
+            <template #title>刷新</template>
+            <Button value="small"><RightOutlined /></Button>
+          </Tooltip>
+          <Tooltip @click="fetch">
+            <template #title>刷新</template>
+            <Button value="small"><RedoOutlined /></Button>
+          </Tooltip>
+        </RadioGroup>
+        <Breadcrumb :path="pathState" />
+      </div>
+      <div class="p-4 h-full bg-white">
+        <List :grid="{ gutter: 16, column: 7 }" size="small" class="p-2 h-full" :data-source="data">
+          <template #renderItem="{ item, index }">
+            <ListItem style="text-align: center">
+              <div
+                :class="selectKey == index + 1 ? 'file-item-select file-item' : 'file-item'"
+                @click="selectItem(index + 1)"
+              >
+                <Tooltip placement="bottom" mouseEnterDelay="0.8">
+                  <template #title>
+                    <div style="font-size: 10px">
+                      <span>名称{{ item.name }}</span>
+                      <br />
+                      <span>大小：{{ sizeShow(item.size) }}</span>
+                      <br />
+                      <span>修改日期: {{ formatUnixToTime(item.updated_at) }}</span>
+                    </div>
+                  </template>
+                  <div class="file-item-box">
+                    <img :src="imageShow(item)" />
+                    <span>{{ item.name }}</span>
                   </div>
-                </template>
-                <div class="file-item-box">
-                  <img :src="imageShow(item)" />
-                  <span>{{ item.name }}</span>
-                </div>
-              </Tooltip>
-            </div>
-          </ListItem>
-        </template>
-      </List>
+                </Tooltip>
+              </div>
+            </ListItem>
+          </template>
+        </List>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+  import Breadcrumb from './Breadcrumb.vue';
   import { computed, onMounted, ref, watch } from 'vue';
   import {
     EditOutlined,
     EllipsisOutlined,
     RedoOutlined,
+    LeftOutlined,
+    RightOutlined,
     TableOutlined,
   } from '@ant-design/icons-vue';
-  import { List, Card, Image, Typography, Tooltip, Slider, Avatar } from 'ant-design-vue';
+  import {
+    List,
+    Card,
+    Image,
+    Typography,
+    Tooltip,
+    Slider,
+    Avatar,
+    RadioGroup,
+  } from 'ant-design-vue';
   import { Dropdown } from '/@/components/Dropdown';
   import { BasicForm, useForm } from '/@/components/Form';
   import { Button } from '/@/components/Button';
   import { isFunction } from '/@/utils/is';
   import { volumeList } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
+  import { getPathInfo } from '/@/utils/filepath';
 
   //每行个数
   const grid = ref(12);
@@ -90,38 +116,25 @@
   const sliderProp = computed(() => useSlider(4));
   // 组件接收参数
   const props = defineProps({
-    // 请求API的参数
-    params: {
-      type: Object,
-      default: () => ({}),
-    },
-    volumeId: {
-      type: String,
-      default: '',
-    },
     path: {
       type: String,
       default: '',
     },
   });
-
-  watch(
-    () => props.volumeId,
-    (newv, oldv) => {
-      fetch();
-    },
-  );
   watch(
     () => props.path,
-    (newv, oldv) => {
+    (newv) => {
+      pathState.value = newv;
       fetch();
     },
   );
 
   //暴露内部方法
-  const emit = defineEmits(['getMethod', 'delete']);
+  const emit = defineEmits(['selectDir', 'delete']);
   //数据
   const data = ref([]);
+
+  const pathState = ref('');
 
   const imageShow = (item: any) => {
     if (item.is_dir) {
@@ -176,8 +189,22 @@
     submitFunc: handleSubmit,
   });
 
+  const clickTimes = ref(0);
+
   const selectItem = (key: number) => {
     selectKey.value = key;
+    clickTimes.value++;
+    if (clickTimes.value === 2) {
+      clickTimes.value = 0;
+      selectKey.value = 0;
+      emit('selectDir', data.value[key - 1]);
+    }
+    setTimeout(function () {
+      if (clickTimes.value === 1) {
+        clickTimes.value = 0;
+        selectKey.value = key;
+      }
+    }, 250);
   };
 
   //表单提交
@@ -189,24 +216,23 @@
   // 自动请求并暴露内部方法
   onMounted(() => {
     fetch();
-    emit('getMethod', fetch);
   });
 
   async function fetch(p = {}) {
-    const { path, params, volumeId } = props;
-    if (volumeId) {
-      const res = await volumeList(volumeId, {
-        path: path,
+    const { path, params } = props;
+    if (path) {
+      const info = getPathInfo(path);
+      const res = await volumeList(info[0], {
+        path: info[1],
       });
       data.value = res.list;
-      console.log(data.value);
       total.value = res.total;
     }
   }
   const total = ref(0);
 
   async function handleDelete(id) {
-    emit('delete', id);
+    emit('selectDir', id);
   }
 </script>
 

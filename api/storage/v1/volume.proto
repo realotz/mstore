@@ -56,8 +56,9 @@ message File{
   int64 size = 2;
   string path = 3;
   string ext = 4;
-    bool is_dir = 5;
+  bool is_dir = 5;
   int64 updated_at = 6;
+  string volume_id = 7;
 }
 
 // 存储卷列表请求

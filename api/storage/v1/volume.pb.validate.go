@@ -205,6 +205,8 @@ func (m *File) Validate() error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for VolumeId
+
 	return nil
 }
 

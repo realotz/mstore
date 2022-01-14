@@ -130,6 +130,7 @@ func (p *localProvider) Open(ctx context.Context, fileName string) ([]byte, erro
 // 文件列表
 func (p *localProvider) List(ctx context.Context, req ListOption) ([]FileInfo, error) {
 	var list []FileInfo
+	req.Path = filepath.Join(filepath.Split(req.Path))
 	dirList, err := readDir(filepath.Join(p.config.Path, req.Path))
 	if err != nil {
 		return nil, err
