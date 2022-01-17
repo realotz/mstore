@@ -30,4 +30,5 @@ export interface GetUserInfoModel {
   role: string;
   // 头像
   avatar: string;
+  homePath: string;
 }

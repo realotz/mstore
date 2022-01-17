@@ -17,6 +17,9 @@
   import { BasicTree, TreeItem } from '/@/components/Tree';
   import { getVolumeList, volumeList } from '/@/api/mstore/volume';
   import { pathFmt, getPathInfo } from '/@/utils/filepath';
+  import { useVolumeStoreWithOut } from '/@/store/modules/volume';
+  const volumeStore = useVolumeStoreWithOut();
+  const oldPath = ref('');
   export default defineComponent({
     name: 'VolumeList',
     components: { BasicTree },
@@ -25,43 +28,41 @@
         type: String,
         require: true,
       },
-      volumes: {
-        type: Array,
-        require: true,
-      },
     },
+
     emits: ['select'],
     setup(props, { emit }) {
       watch(
-        () => props.volumes,
+        () => volumeStore.getVolumes,
         (v: string) => {
           fetch();
         },
-      );
-      watch(
-        () => props.path,
-        (v: string) => {
-          if (!v) {
-            return;
-          }
-          const paths = v.split('/');
-          let p = '';
-          for (let i = 1; i < paths.length; i++) {
-            p += '/' + paths[i];
-            let f = true;
-            for (let j = 0; j <= expandedKeys.value.length; j++) {
-              if (expandedKeys.value[j] == p) {
-                f = false;
+      ),
+        watch(
+          () => props.path,
+          (v: string) => {
+            if (!v) {
+              return;
+            }
+            const paths = v.split('/');
+            let p = '';
+            for (let i = 1; i < paths.length; i++) {
+              p += '/' + paths[i];
+              let f = true;
+              for (let j = 0; j <= expandedKeys.value.length; j++) {
+                if (expandedKeys.value[j] == p) {
+                  f = false;
+                }
+              }
+              if (f) {
+                loadTree(p);
+                expandedKeys.value.push(p);
               }
             }
-            if (f) {
-              loadTree(p);
-              expandedKeys.value.push(p);
-            }
-          }
-          selectedKeys.value = [v];
-        },
-      );
+            oldPath.value = v;
+            selectedKeys.value = [v];
+          },
+        );
       const treeData = ref<TreeItem[]>([]);
       const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
       const expandedKeys = ref<string[]>([]);
@@ -69,7 +70,8 @@
 
       // 存储卷列表
       async function fetch() {
-        props.volumes.map((item) => {
+        const volumes = volumeStore.getVolumes;
+        volumes.map((item) => {
           treeData.value.push({
             title: item.name,
             key: '/' + item.id,
@@ -82,7 +84,6 @@
 
       async function loadTree(key) {
         const info = getPathInfo(key);
-        console.log(info);
         const res = await volumeList(info[0], {
           type: 2,
           path: info[1],
@@ -111,8 +112,10 @@
       async function onLoadData(treeNode) {
         await loadTree(treeNode.eventKey);
       }
-
       function handleSelect(keys) {
+        if (oldPath.value != '') {
+          volumeStore.addBackPath(oldPath.value);
+        }
         emit('select', keys[0]);
       }
       onMounted(() => {

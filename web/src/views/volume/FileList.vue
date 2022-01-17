@@ -7,20 +7,22 @@
         style="height: 48px; padding-left: 7px"
       >
         <RadioGroup>
-          <Tooltip @click="fetch">
-            <template #title>刷新</template>
+          <Tooltip @click="handleBack">
+            <template #title>后退</template>
             <Button value="small"><LeftOutlined /></Button>
           </Tooltip>
-          <Tooltip @click="fetch">
-            <template #title>刷新</template>
-            <Button value="small"><RightOutlined /></Button>
+          <Tooltip @click="handleAdvance">
+            <template #title>前进</template>
+            <Button :disabled="volumeStore.advancePaths.length == 0" value="small"
+              ><RightOutlined
+            /></Button>
           </Tooltip>
           <Tooltip @click="fetch">
             <template #title>刷新</template>
             <Button value="small"><RedoOutlined /></Button>
           </Tooltip>
         </RadioGroup>
-        <Breadcrumb :path="pathState" />
+        <Breadcrumb :path="pathState" @select="breadSelect" />
       </div>
       <div class="p-4 h-full bg-white">
         <List :grid="{ gutter: 16, column: 7 }" size="small" class="p-2 h-full" :data-source="data">
@@ -82,7 +84,8 @@
   import { volumeList } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
   import { getPathInfo } from '/@/utils/filepath';
-
+  import { useVolumeStoreWithOut } from '/@/store/modules/volume';
+  const volumeStore = useVolumeStoreWithOut();
   //每行个数
   const grid = ref(12);
   const selectKey = ref(0);
@@ -135,6 +138,8 @@
   const data = ref([]);
 
   const pathState = ref('');
+  // 前进按钮的栈格式
+  const forwardStake = ref([]);
 
   const imageShow = (item: any) => {
     if (item.is_dir) {
@@ -190,14 +195,53 @@
   });
 
   const clickTimes = ref(0);
+  const handleAdvance = () => {
+    const path = volumeStore.getAdvancePath();
+    if (path) {
+      volumeStore.addBackPath(props.path);
+      emit('selectDir', path);
+    }
+  };
+  const handleBack = () => {
+    const path = volumeStore.getBackPath();
+    if (path) {
+      volumeStore.addAdvancePath(props.path);
+      emit('selectDir', path);
+    } else {
+      if (props.path) {
+        const paths = props.path.split('/');
+        if (paths.length > 2) {
+          volumeStore.addAdvancePath(props.path);
+        }
+        paths.pop();
+        emit('selectDir', paths.join('/'));
+      }
+    }
+  };
 
+  const breadSelect = (key) => {
+    if (key) {
+      volumeStore.addBackPath(props.path);
+      emit('selectDir', key);
+    }
+  };
+
+  // 选择文件夹
   const selectItem = (key: number) => {
     selectKey.value = key;
     clickTimes.value++;
     if (clickTimes.value === 2) {
       clickTimes.value = 0;
       selectKey.value = 0;
-      emit('selectDir', data.value[key - 1]);
+      const item = data.value[key - 1];
+      if (item.is_dir) {
+        volumeStore.addBackPath(props.path);
+        if (item.path == '/') {
+          emit('selectDir', '/' + item.volume_id + item.path + item.name);
+        } else {
+          emit('selectDir', '/' + item.volume_id + item.path + '/' + item.name);
+        }
+      }
     }
     setTimeout(function () {
       if (clickTimes.value === 1) {
@@ -219,7 +263,7 @@
   });
 
   async function fetch(p = {}) {
-    const { path, params } = props;
+    const { path } = props;
     if (path) {
       const info = getPathInfo(path);
       const res = await volumeList(info[0], {

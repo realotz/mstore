@@ -33,3 +33,5 @@ export interface FileListItem {
  * @description: Request list return value
  */
 export type VolumeResultModel = BasicFetchResult<VolumeListItem>;
+
+export type FileResultModel = BasicFetchResult<FileListItem>;
