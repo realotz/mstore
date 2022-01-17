@@ -19,11 +19,13 @@ export const useVolumeStore = defineStore({
     getVolumes(): any {
       return this.volumes;
     },
+    getAdvancePaths(): Array<String> {
+      return this.advancePaths;
+    },
   },
   actions: {
     setVolumeList(list) {
       this.volumes = list;
-      console.log(this.volumes);
     },
     getBackPath(): any {
       return this.backPaths.pop();
@@ -36,6 +38,10 @@ export const useVolumeStore = defineStore({
     },
     addAdvancePath(path) {
       this.advancePaths.push(path);
+    },
+    resetAdvancePath() {
+      console.log(this.advancePaths);
+      // this.advancePaths.splice(0, this.advancePaths.length);
     },
     async volumeList() {
       try {

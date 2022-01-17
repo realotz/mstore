@@ -13,7 +13,9 @@
           </Tooltip>
           <Tooltip @click="handleAdvance">
             <template #title>前进</template>
-            <Button :disabled="volumeStore.advancePaths.length == 0" value="small"
+            <Button
+              :disabled="!volumeStore.getAdvancePaths || volumeStore.getAdvancePaths.length == 0"
+              value="small"
               ><RightOutlined
             /></Button>
           </Tooltip>
@@ -195,6 +197,7 @@
   });
 
   const clickTimes = ref(0);
+
   const handleAdvance = () => {
     const path = volumeStore.getAdvancePath();
     if (path) {
@@ -202,6 +205,7 @@
       emit('selectDir', path);
     }
   };
+
   const handleBack = () => {
     const path = volumeStore.getBackPath();
     if (path) {
@@ -222,6 +226,7 @@
   const breadSelect = (key) => {
     if (key) {
       volumeStore.addBackPath(props.path);
+      volumeStore.resetAdvancePath();
       emit('selectDir', key);
     }
   };
@@ -236,6 +241,7 @@
       const item = data.value[key - 1];
       if (item.is_dir) {
         volumeStore.addBackPath(props.path);
+        volumeStore.resetAdvancePath();
         if (item.path == '/') {
           emit('selectDir', '/' + item.volume_id + item.path + item.name);
         } else {

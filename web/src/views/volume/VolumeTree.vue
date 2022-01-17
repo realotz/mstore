@@ -29,7 +29,6 @@
         require: true,
       },
     },
-
     emits: ['select'],
     setup(props, { emit }) {
       watch(
@@ -115,6 +114,7 @@
       function handleSelect(keys) {
         if (oldPath.value != '') {
           volumeStore.addBackPath(oldPath.value);
+          volumeStore.resetAdvancePath();
         }
         emit('select', keys[0]);
       }
