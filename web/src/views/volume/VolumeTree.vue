@@ -113,7 +113,6 @@
         await loadTree(treeNode.eventKey);
       }
       function handleSelect(keys) {
-        console.log(keys);
         if (keys[0]) {
           if (oldPath.value != '') {
             volumeStore.addBackPath(oldPath.value);
