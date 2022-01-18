@@ -1,12 +1,15 @@
 <template>
-  <div :class="[prefixCls, `${prefixCls}--${theme}`]">
-    <a-breadcrumb :routes="routes">
-      <template #itemRender="{ route, paths }">
-        <router-link to="" @click="handleClick(route, paths, $event)">
-          {{ route.name }}
-        </router-link>
-      </template>
-    </a-breadcrumb>
+  <div>
+    <span class="ant-cascader-picker" tabindex="0" style="width: 100%">
+      <a-breadcrumb class="breadcrumb-picker-label" :routes="routes">
+        <template #itemRender="{ route, paths }">
+          <router-link to="" @click="handleClick(route, paths, $event)">
+            {{ route.name }}
+          </router-link>
+        </template>
+      </a-breadcrumb>
+      <input autocomplete="off" type="text" class="ant-input ant-cascader-input" />
+    </span>
   </div>
 </template>
 <script lang="ts">
@@ -67,55 +70,20 @@
   });
 </script>
 <style lang="less">
-  @prefix-cls: ~'@{namespace}-layout-breadcrumb';
-
-  .@{prefix-cls} {
-    display: flex;
-    padding: 0 8px;
-    align-items: center;
-
-    .ant-breadcrumb-link {
-      .anticon {
-        margin-right: 4px;
-        margin-bottom: 2px;
-      }
-    }
-
-    &--light {
-      .ant-breadcrumb-link {
-        color: @breadcrumb-item-normal-color;
-
-        a {
-          color: rgb(0 0 0 / 65%);
-
-          &:hover {
-            color: @primary-color;
-          }
-        }
-      }
-
-      .ant-breadcrumb-separator {
-        color: @breadcrumb-item-normal-color;
-      }
-    }
-
-    &--dark {
-      .ant-breadcrumb-link {
-        color: rgb(255 255 255 / 60%);
-
-        a {
-          color: rgb(255 255 255 / 80%);
-
-          &:hover {
-            color: @white;
-          }
-        }
-      }
-
-      .ant-breadcrumb-separator,
-      .anticon {
-        color: rgb(255 255 255 / 80%);
-      }
-    }
+  .ant-breadcrumb-separator {
+    margin: 0 2px;
+  }
+  .breadcrumb-picker-label {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    margin-top: -10px;
+    padding: 0 20px 0 12px;
+    overflow: hidden;
+    line-height: 20px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 </style>

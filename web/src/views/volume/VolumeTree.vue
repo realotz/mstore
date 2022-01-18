@@ -69,6 +69,7 @@
 
       // 存储卷列表
       async function fetch() {
+        treeData.value = [];
         const volumes = volumeStore.getVolumes;
         volumes.map((item) => {
           treeData.value.push({
@@ -112,11 +113,16 @@
         await loadTree(treeNode.eventKey);
       }
       function handleSelect(keys) {
-        if (oldPath.value != '') {
-          volumeStore.addBackPath(oldPath.value);
-          volumeStore.resetAdvancePath();
+        console.log(keys);
+        if (keys[0]) {
+          if (oldPath.value != '') {
+            volumeStore.addBackPath(oldPath.value);
+            volumeStore.resetAdvancePath();
+          }
+          emit('select', keys[0]);
+        } else {
+          selectedKeys.value = [oldPath.value];
         }
-        emit('select', keys[0]);
       }
       onMounted(() => {
         fetch();

@@ -40,8 +40,7 @@ export const useVolumeStore = defineStore({
       this.advancePaths.push(path);
     },
     resetAdvancePath() {
-      console.log(this.advancePaths);
-      // this.advancePaths.splice(0, this.advancePaths.length);
+      this.advancePaths.splice(0, this.advancePaths.length);
     },
     async volumeList() {
       try {

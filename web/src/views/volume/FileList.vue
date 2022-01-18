@@ -1,45 +1,33 @@
 <template>
   <div class="p-2 h-full">
-    {{ sliderProp.width }}
-    <div class="h-full">
-      <div
-        class="bg-white flex px-2 py-1.5 items-center basic-tree-header"
-        style="height: 48px; padding-left: 7px"
-      >
-        <RadioGroup>
-          <Tooltip @click="handleBack">
-            <template #title>后退</template>
-            <Button value="small"><LeftOutlined /></Button>
-          </Tooltip>
-          <Tooltip @click="handleAdvance">
-            <template #title>前进</template>
-            <Button
-              :disabled="!volumeStore.getAdvancePaths || volumeStore.getAdvancePaths.length == 0"
-              value="small"
-              ><RightOutlined
-            /></Button>
-          </Tooltip>
-          <Tooltip @click="fetch">
-            <template #title>刷新</template>
-            <Button value="small"><RedoOutlined /></Button>
-          </Tooltip>
-        </RadioGroup>
-        <Breadcrumb :path="pathState" @select="breadSelect" />
+    <div class="h-full bg-white">
+      <div class="px-2 flex py-1.5 list-harder">
+        <Space>
+          <Button value="small"><LeftOutlined /></Button>
+          <Button
+            :disabled="!volumeStore.getAdvancePaths || volumeStore.getAdvancePaths.length == 0"
+            value="small"
+            ><RightOutlined
+          /></Button>
+          <Button value="small"><RedoOutlined /></Button>
+          <Breadcrumb style="width: 600px" :path="pathState" @select="breadSelect" />
+          <a-input-search enter-button />
+        </Space>
       </div>
-      <div class="p-4 h-full bg-white">
-        <List :grid="{ gutter: 16, column: 7 }" size="small" class="p-2 h-full" :data-source="data">
+      <div class="p-4 list-body">
+        <List :grid="{ gutter: 16, column: 7 }" size="small" class="p-2" :data-source="data">
           <template #renderItem="{ item, index }">
             <ListItem style="text-align: center">
               <div
                 :class="selectKey == index + 1 ? 'file-item-select file-item' : 'file-item'"
                 @click="selectItem(index + 1)"
               >
-                <Tooltip placement="bottom" mouseEnterDelay="0.8">
+                <Tooltip placement="bottom" :mouseEnterDelay="0.8">
                   <template #title>
                     <div style="font-size: 10px">
                       <span>名称{{ item.name }}</span>
                       <br />
-                      <span>大小：{{ sizeShow(item.size) }}</span>
+                      <span>大小：{{ sizeFmt(item.size) }}</span>
                       <br />
                       <span>修改日期: {{ formatUnixToTime(item.updated_at) }}</span>
                     </div>
@@ -78,6 +66,7 @@
     Slider,
     Avatar,
     RadioGroup,
+    Space,
   } from 'ant-design-vue';
   import { Dropdown } from '/@/components/Dropdown';
   import { BasicForm, useForm } from '/@/components/Form';
@@ -86,39 +75,18 @@
   import { volumeList } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
   import { getPathInfo } from '/@/utils/filepath';
+  import { sizeFmt } from '/@/utils/fmt';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   const volumeStore = useVolumeStoreWithOut();
   //每行个数
   const grid = ref(12);
   const selectKey = ref(0);
-  // slider属性
-  const useSlider = (min = 6, max = 12) => {
-    // 每行显示个数滑动条
-    const getMarks = () => {
-      const l = {};
-      for (let i = min; i < max + 1; i++) {
-        l[i] = {
-          style: {
-            color: '#fff',
-          },
-          label: i,
-        };
-      }
-      return l;
-    };
-    return {
-      min,
-      max,
-      marks: getMarks(),
-      step: 1,
-    };
-  };
-
   const ListItem = List.Item;
-  const CardMeta = Card.Meta;
-  const TypographyText = Typography.Text;
-  // 获取slider属性
-  const sliderProp = computed(() => useSlider(4));
+  //数据
+  const data = ref([]);
+  const pathState = ref('');
+  // 前进按钮的栈格式
+  const forwardStake = ref([]);
   // 组件接收参数
   const props = defineProps({
     path: {
@@ -133,15 +101,13 @@
       fetch();
     },
   );
-
   //暴露内部方法
   const emit = defineEmits(['selectDir', 'delete']);
-  //数据
-  const data = ref([]);
 
-  const pathState = ref('');
-  // 前进按钮的栈格式
-  const forwardStake = ref([]);
+  // 自动请求并暴露内部方法
+  onMounted(() => {
+    fetch();
+  });
 
   const imageShow = (item: any) => {
     if (item.is_dir) {
@@ -165,39 +131,10 @@
     return '/resource/img/misc.png';
   };
 
-  const sizeShow = (limit: number) => {
-    var size = '';
-    if (limit < 1 * 1024) {
-      //小于0.1KB，则转化成B
-      size = limit + 'B';
-    } else if (limit < 1024 * 1024) {
-      size = (limit / 1024).toFixed(2) + 'KB';
-    } else if (limit < 1024 * 1024 * 1024) {
-      size = (limit / (1024 * 1024)).toFixed(2) + 'MB';
-    } else {
-      size = (limit / (1024 * 1024 * 1024)).toFixed(2) + 'GB';
-    }
-    var sizeStr = size + '';
-    var index = sizeStr.indexOf('.');
-    var dou = sizeStr.substr(index + 1, 2);
-    if (dou == '00') {
-      return sizeStr.substring(0, index) + sizeStr.substr(index + 3, 2);
-    }
-    return size;
-  };
-
-  //表单
-  const [registerForm, { validate }] = useForm({
-    schemas: [{ field: 'type', component: 'Input', label: '类型' }],
-    labelWidth: 80,
-    baseColProps: { span: 6 },
-    actionColOptions: { span: 24 },
-    autoSubmitOnEnter: true,
-    submitFunc: handleSubmit,
-  });
-
+  // 双击判断
   const clickTimes = ref(0);
 
+  // 前进操作
   const handleAdvance = () => {
     const path = volumeStore.getAdvancePath();
     if (path) {
@@ -205,7 +142,7 @@
       emit('selectDir', path);
     }
   };
-
+  // 后退操作
   const handleBack = () => {
     const path = volumeStore.getBackPath();
     if (path) {
@@ -223,6 +160,7 @@
     }
   };
 
+  // 面包屑选择
   const breadSelect = (key) => {
     if (key) {
       volumeStore.addBackPath(props.path);
@@ -259,16 +197,11 @@
 
   //表单提交
   async function handleSubmit() {
-    const data = await validate();
-    await fetch(data);
+    await fetch();
   }
 
-  // 自动请求并暴露内部方法
-  onMounted(() => {
-    fetch();
-  });
-
-  async function fetch(p = {}) {
+  // 文件列表
+  async function fetch() {
     const { path } = props;
     if (path) {
       const info = getPathInfo(path);
@@ -276,13 +209,7 @@
         path: info[1],
       });
       data.value = res.list;
-      total.value = res.total;
     }
-  }
-  const total = ref(0);
-
-  async function handleDelete(id) {
-    emit('selectDir', id);
   }
 </script>
 
@@ -318,5 +245,13 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
     overflow: hidden;
+  }
+  .list-harder {
+    height: 48px;
+    padding-left: 7px;
+  }
+  .list-body {
+    overflow-y: scroll;
+    height: calc(100% - 48px);
   }
 </style>
