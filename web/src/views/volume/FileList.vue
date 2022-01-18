@@ -2,19 +2,81 @@
   <div class="p-2 h-full">
     <div class="h-full bg-white">
       <div class="px-2 flex py-1.5 list-harder">
-        <Space>
-          <Button value="small"><LeftOutlined /></Button>
+        <Space style="width: 90%">
+          <Button value="small">
+            <template #icon> <LeftOutlined /></template>
+          </Button>
           <Button
             :disabled="!volumeStore.getAdvancePaths || volumeStore.getAdvancePaths.length == 0"
             value="small"
-            ><RightOutlined
-          /></Button>
-          <Button value="small"><RedoOutlined /></Button>
+          >
+            <template #icon> <RightOutlined /></template>
+          </Button>
+          <Button value="small">
+            <template #icon> <RedoOutlined /></template>
+          </Button>
           <Breadcrumb style="width: 600px" :path="pathState" @select="breadSelect" />
-          <a-input-search enter-button />
+          <InputSearch enter-button />
+        </Space>
+        <Space style="width: 10%; flex-direction: row-reverse">
+          <Dropdown>
+            <Button value="small">
+              <template #icon> <AppstoreOutlined /> </template>
+            </Button>
+            <template #overlay>
+              <Menu>
+                <MenuItem>
+                  <span href="javascript:;">列表视图</span>
+                </MenuItem>
+                <MenuItem>
+                  <span href="javascript:;">小图标</span>
+                </MenuItem>
+                <MenuItem>
+                  <span href="javascript:;">大图标</span>
+                </MenuItem>
+              </Menu>
+            </template>
+          </Dropdown>
+          <Dropdown>
+            <Button value="small">
+              <template #icon> <FunnelPlotOutlined /> </template>
+            </Button>
+            <template #overlay>
+              <Menu>
+                <MenuItem>
+                  <span href="javascript:;">名称</span>
+                </MenuItem>
+                <MenuItem>
+                  <span href="javascript:;">大小</span>
+                </MenuItem>
+                <MenuItem>
+                  <span href="javascript:;">修改日期</span>
+                </MenuItem>
+                <MenuItem>
+                  <span href="javascript:;">文件类型</span>
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem>
+                  <span href="javascript:;">从小到大</span>
+                </MenuItem>
+                <MenuItem>
+                  <span href="javascript:;">从大到小</span>
+                </MenuItem>
+              </Menu>
+            </template>
+          </Dropdown>
         </Space>
       </div>
-      <div class="p-4 list-body">
+      <Table
+        v-if="showType == 0"
+        :columns="columns"
+        :dataSource="data"
+        :loading="loading"
+        :pagination="{ pageSize: 100 }"
+        rowKey="name"
+        bordered
+      />
+      <div class="p-4 list-body" v-if="showType > 0">
         <List :grid="{ gutter: 16, column: 7 }" size="small" class="p-2" :data-source="data">
           <template #renderItem="{ item, index }">
             <ListItem style="text-align: center">
@@ -49,6 +111,8 @@
 <script lang="ts" setup>
   import Breadcrumb from './Breadcrumb.vue';
   import { computed, onMounted, ref, watch } from 'vue';
+  import { BasicTable, ColumnChangeParam } from '/@/components/Table';
+  import { BasicColumn } from '/@/components/Table/src/types/table';
   import {
     EditOutlined,
     EllipsisOutlined,
@@ -56,6 +120,8 @@
     LeftOutlined,
     RightOutlined,
     TableOutlined,
+    AppstoreOutlined,
+    FunnelPlotOutlined,
   } from '@ant-design/icons-vue';
   import {
     List,
@@ -66,11 +132,16 @@
     Slider,
     Avatar,
     RadioGroup,
+    InputSearch,
+    Button,
     Space,
+    Dropdown,
+    Menu,
+    MenuItem,
+    MenuDivider,
+    Table,
   } from 'ant-design-vue';
-  import { Dropdown } from '/@/components/Dropdown';
   import { BasicForm, useForm } from '/@/components/Form';
-  import { Button } from '/@/components/Button';
   import { isFunction } from '/@/utils/is';
   import { volumeList } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
@@ -78,15 +149,39 @@
   import { sizeFmt } from '/@/utils/fmt';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   const volumeStore = useVolumeStoreWithOut();
+  const columns: BasicColumn[] = [
+    {
+      title: '名称',
+      dataIndex: 'name',
+      width: 150,
+    },
+    {
+      title: '大小',
+      dataIndex: 'size',
+    },
+    {
+      title: '类型',
+      dataIndex: 'ext',
+      width: 150,
+    },
+    {
+      title: '修改日期',
+      width: 150,
+      dataIndex: 'updated_at',
+    },
+  ];
   //每行个数
   const grid = ref(12);
   const selectKey = ref(0);
+  const loading = ref(false);
   const ListItem = List.Item;
   //数据
   const data = ref([]);
   const pathState = ref('');
   // 前进按钮的栈格式
   const forwardStake = ref([]);
+  // 展示类型
+  const showType = ref(0);
   // 组件接收参数
   const props = defineProps({
     path: {
@@ -113,19 +208,16 @@
     if (item.is_dir) {
       return '/resource/img/folder.png';
     }
-    if (item.ext === 'mp3') {
+    if (item.ext === '.mp3') {
       return '/resource/img/flac.png';
     }
-    if (item.ext === 'mp4') {
+    if (item.ext === '.mp4') {
       return '/resource/img/mp4.png';
     }
-    if (item.ext === 'exe') {
+    if (item.ext === '.exe') {
       return '/resource/img/exe.png';
     }
-    if (item.ext === 'exe') {
-      return '/resource/img/exe.png';
-    }
-    if (item.ext === 'zip') {
+    if (item.ext === '.zip') {
       return '/resource/img/zip.png';
     }
     return '/resource/img/misc.png';
