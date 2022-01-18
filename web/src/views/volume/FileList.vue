@@ -3,12 +3,13 @@
     <div class="h-full bg-white">
       <div class="px-2 flex py-1.5 list-harder">
         <Space style="width: 90%">
-          <Button value="small">
+          <Button value="small" @click="handleBack">
             <template #icon> <LeftOutlined /></template>
           </Button>
           <Button
             :disabled="!volumeStore.getAdvancePaths || volumeStore.getAdvancePaths.length == 0"
             value="small"
+            @click="handleAdvance"
           >
             <template #icon> <RightOutlined /></template>
           </Button>
@@ -19,24 +20,6 @@
           <InputSearch enter-button />
         </Space>
         <Space style="width: 10%; flex-direction: row-reverse">
-          <Dropdown>
-            <Button value="small">
-              <template #icon> <AppstoreOutlined /> </template>
-            </Button>
-            <template #overlay>
-              <Menu>
-                <MenuItem>
-                  <span href="javascript:;">列表视图</span>
-                </MenuItem>
-                <MenuItem>
-                  <span href="javascript:;">小图标</span>
-                </MenuItem>
-                <MenuItem>
-                  <span href="javascript:;">大图标</span>
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
           <Dropdown>
             <Button value="small">
               <template #icon> <FunnelPlotOutlined /> </template>
@@ -65,23 +48,60 @@
               </Menu>
             </template>
           </Dropdown>
+          <Dropdown>
+            <Button value="small">
+              <template #icon> <AppstoreOutlined /> </template>
+            </Button>
+            <template #overlay>
+              <Menu selectable @click="handleShow" v-model:selectedKeys="selectedShowKeys">
+                <MenuItem :key="0">
+                  <span href="javascript:;">列表视图</span>
+                </MenuItem>
+                <MenuItem :key="1">
+                  <span href="javascript:;">小图标</span>
+                </MenuItem>
+                <MenuItem :key="2">
+                  <span href="javascript:;">大图标</span>
+                </MenuItem>
+              </Menu>
+            </template>
+          </Dropdown>
         </Space>
       </div>
-      <Table
+      <BasicTable
         v-if="showType == 0"
         :columns="columns"
         :dataSource="data"
         :loading="loading"
         :pagination="{ pageSize: 100 }"
+        bordered="true"
         rowKey="name"
-        bordered
-      />
+      >
+        <template #name="{ record }">
+          <Space>
+            <img class="file-item-list-img" :src="imageShow(record)" />
+            <span>{{ record.name }}</span>
+          </Space>
+        </template>
+        <template #size="{ record }">{{ sizeFmt(record.size) }} </template>
+        <template #ext="{ record }">{{ record.ext }} </template>
+        <template #updated_at="{ record }">{{ formatUnixToTime(record.updated_at) }} </template>
+      </BasicTable>
       <div class="p-4 list-body" v-if="showType > 0">
-        <List :grid="{ gutter: 16, column: 7 }" size="small" class="p-2" :data-source="data">
+        <List
+          :grid="{ gutter: 16, column: showType == 1 ? 12 : 7 }"
+          size="small"
+          class="p-2"
+          :data-source="data"
+        >
           <template #renderItem="{ item, index }">
             <ListItem style="text-align: center">
               <div
-                :class="selectKey == index + 1 ? 'file-item-select file-item' : 'file-item'"
+                :class="
+                  selectKey == index + 1
+                    ? `file-item-select file-item${showType}`
+                    : `file-item${showType}`
+                "
                 @click="selectItem(index + 1)"
               >
                 <Tooltip placement="bottom" :mouseEnterDelay="0.8">
@@ -94,7 +114,7 @@
                       <span>修改日期: {{ formatUnixToTime(item.updated_at) }}</span>
                     </div>
                   </template>
-                  <div class="file-item-box">
+                  <div :class="`file-item-box${showType}`">
                     <img :src="imageShow(item)" />
                     <span>{{ item.name }}</span>
                   </div>
@@ -111,8 +131,7 @@
 <script lang="ts" setup>
   import Breadcrumb from './Breadcrumb.vue';
   import { computed, onMounted, ref, watch } from 'vue';
-  import { BasicTable, ColumnChangeParam } from '/@/components/Table';
-  import { BasicColumn } from '/@/components/Table/src/types/table';
+  import { BasicTable, useTable } from '/@/components/Table';
   import {
     EditOutlined,
     EllipsisOutlined,
@@ -141,33 +160,36 @@
     MenuDivider,
     Table,
   } from 'ant-design-vue';
-  import { BasicForm, useForm } from '/@/components/Form';
-  import { isFunction } from '/@/utils/is';
   import { volumeList } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
   import { getPathInfo } from '/@/utils/filepath';
   import { sizeFmt } from '/@/utils/fmt';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   const volumeStore = useVolumeStoreWithOut();
-  const columns: BasicColumn[] = [
+  const columns = [
     {
       title: '名称',
       dataIndex: 'name',
-      width: 150,
+      align: 'left',
+      slots: { customRender: 'name' },
     },
     {
       title: '大小',
       dataIndex: 'size',
+      width: 150,
+      slots: { customRender: 'size' },
     },
     {
       title: '类型',
       dataIndex: 'ext',
       width: 150,
+      slots: { customRender: 'ext' },
     },
     {
       title: '修改日期',
-      width: 150,
+      width: 200,
       dataIndex: 'updated_at',
+      slots: { customRender: 'updated_at' },
     },
   ];
   //每行个数
@@ -182,6 +204,7 @@
   const forwardStake = ref([]);
   // 展示类型
   const showType = ref(0);
+  const selectedShowKeys = ref([0]);
   // 组件接收参数
   const props = defineProps({
     path: {
@@ -221,6 +244,10 @@
       return '/resource/img/zip.png';
     }
     return '/resource/img/misc.png';
+  };
+
+  const handleShow = (item) => {
+    showType.value = item.key;
   };
 
   // 双击判断
@@ -306,37 +333,72 @@
 </script>
 
 <style lang="less">
-  .file-item {
+  .file-item-select {
+    background: #e6f5ff;
+    border: 1px solid #a6daff;
+  }
+  .file-item2 {
     width: 128px;
     height: 158px;
     display: block;
   }
-  .file-item:hover {
+  .file-item2:hover {
     background: #e6f5ff;
     // border: 1px solid #a6daff;
   }
-  .file-item-box {
+  .file-item1 {
+    height: 80px;
+    width: 66px;
+    display: block;
+  }
+  .file-item1:hover {
+    background: #e6f5ff;
+    // border: 1px solid #a6daff;
+  }
+  .file-item-box1 {
+    height: 80px;
+    width: 66px;
+    text-align: center;
+    vertical-align: bottom;
+    display: table-cell;
+  }
+  .file-item-box1 img {
+    max-height: 64px;
+    max-width: 64px;
+    width: auto;
+    height: auto;
+  }
+  .file-item-box2 {
     height: 130px;
     width: 128px;
     text-align: center;
     vertical-align: bottom;
     display: table-cell;
   }
-  .file-item-select {
-    background: #e6f5ff;
-    border: 1px solid #a6daff;
-  }
-  .file-item-box img {
+  .file-item-box2 img {
     max-height: 128px;
     max-width: 128px;
     width: auto;
     height: auto;
   }
-  .file-item-box span {
+  .file-item-box2 span {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
     overflow: hidden;
+  }
+  .file-item-box1 span {
+    font-size: 10px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+  }
+  .file-item-list-img {
+    max-height: 20px;
+    max-width: 20px;
+    width: auto;
+    height: auto;
   }
   .list-harder {
     height: 48px;
