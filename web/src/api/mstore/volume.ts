@@ -3,6 +3,7 @@ import {
   VolumeResultModel,
   ListFileParams,
   FileResultModel,
+  FileReanmeParams,
 } from './model/volumeModel';
 import { defHttp } from '/@/utils/http/axios';
 
@@ -15,3 +16,6 @@ export const getVolumeList = (params?: VolumeParams) =>
 
 export const volumeList = (id: String, params?: ListFileParams) =>
   defHttp.get<FileResultModel>({ url: Api.Volume + '/' + id + '/files', params });
+
+export const fileRename = (id: String, params: FileReanmeParams) =>
+  defHttp.post<FileResultModel>({ url: Api.Volume + '/' + id + '/files/rename', params });

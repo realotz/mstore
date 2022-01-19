@@ -33,6 +33,310 @@ var (
 	_ = anypb.Any{}
 )
 
+// Validate checks the field values on FileReq with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *FileReq) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Id
+
+	// no validation rules for Path
+
+	return nil
+}
+
+// FileReqValidationError is the validation error returned by FileReq.Validate
+// if the designated constraints aren't met.
+type FileReqValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FileReqValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FileReqValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FileReqValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FileReqValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FileReqValidationError) ErrorName() string { return "FileReqValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FileReqValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFileReq.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FileReqValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FileReqValidationError{}
+
+// Validate checks the field values on RenameFileReq with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *RenameFileReq) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Id
+
+	// no validation rules for Path
+
+	// no validation rules for NewPath
+
+	return nil
+}
+
+// RenameFileReqValidationError is the validation error returned by
+// RenameFileReq.Validate if the designated constraints aren't met.
+type RenameFileReqValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RenameFileReqValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RenameFileReqValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RenameFileReqValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RenameFileReqValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RenameFileReqValidationError) ErrorName() string { return "RenameFileReqValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RenameFileReqValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRenameFileReq.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RenameFileReqValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RenameFileReqValidationError{}
+
+// Validate checks the field values on MoveCopyFileReq with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *MoveCopyFileReq) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetFiles() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MoveCopyFileReqValidationError{
+					field:  fmt.Sprintf("Files[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for IsDelete
+
+	// no validation rules for ToPath
+
+	// no validation rules for ToVolumeId
+
+	return nil
+}
+
+// MoveCopyFileReqValidationError is the validation error returned by
+// MoveCopyFileReq.Validate if the designated constraints aren't met.
+type MoveCopyFileReqValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MoveCopyFileReqValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MoveCopyFileReqValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MoveCopyFileReqValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MoveCopyFileReqValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MoveCopyFileReqValidationError) ErrorName() string { return "MoveCopyFileReqValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MoveCopyFileReqValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMoveCopyFileReq.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MoveCopyFileReqValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MoveCopyFileReqValidationError{}
+
+// Validate checks the field values on DelFileReq with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *DelFileReq) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetFiles() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DelFileReqValidationError{
+					field:  fmt.Sprintf("Files[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// DelFileReqValidationError is the validation error returned by
+// DelFileReq.Validate if the designated constraints aren't met.
+type DelFileReqValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DelFileReqValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DelFileReqValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DelFileReqValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DelFileReqValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DelFileReqValidationError) ErrorName() string { return "DelFileReqValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DelFileReqValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDelFileReq.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DelFileReqValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DelFileReqValidationError{}
+
 // Validate checks the field values on ListFileReq with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.

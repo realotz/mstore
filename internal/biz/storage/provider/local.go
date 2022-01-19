@@ -113,18 +113,19 @@ func (p *localProvider) Delete(ctx context.Context, fileName string) error {
 	return os.Remove(filepath.Join(p.config.Path, fileName))
 }
 
+// 删除文件
+func (p *localProvider) Create(ctx context.Context, fileName string) (io.ReadWriteCloser, error) {
+	return os.Create(filepath.Join(p.config.Path, fileName))
+}
+
 // 打开文件
-func (p *localProvider) Open(ctx context.Context, fileName string) ([]byte, error) {
-	file, err := os.Open(filepath.Join(p.config.Path, fileName))
-	if err != nil {
-		return nil, err
-	}
-	body, err := io.ReadAll(file)
-	_ = file.Close()
-	if err != nil {
-		return nil, err
-	}
-	return body, err
+func (p *localProvider) Open(ctx context.Context, fileName string) (io.ReadWriteCloser, error) {
+	return os.Open(filepath.Join(p.config.Path, fileName))
+}
+
+// 重命名文件
+func (p *localProvider) Rename(ctx context.Context, fileName, newName string) error {
+	return os.Rename(filepath.Join(p.config.Path, fileName), filepath.Join(p.config.Path, newName))
 }
 
 // 文件列表
@@ -141,9 +142,9 @@ func (p *localProvider) List(ctx context.Context, req ListOption) ([]FileInfo, e
 				continue
 			}
 		}
-		switch req.Type{
+		switch req.Type {
 		case 2:
-			if v.IsDir(){
+			if v.IsDir() {
 				list = append(list, FileInfo{
 					IsDir:     v.IsDir(),
 					Path:      req.Path,
@@ -155,7 +156,7 @@ func (p *localProvider) List(ctx context.Context, req ListOption) ([]FileInfo, e
 			}
 			break
 		case 3:
-			if !v.IsDir(){
+			if !v.IsDir() {
 				list = append(list, FileInfo{
 					IsDir:     v.IsDir(),
 					Path:      req.Path,

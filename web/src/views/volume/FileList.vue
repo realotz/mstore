@@ -72,7 +72,6 @@
                       <span>修改日期: {{ formatUnixToTime(item.updated_at) }}</span>
                     </div>
                   </template>
-
                   <div :class="`file-item-box${showType}`">
                     <img :src="imageShow(item)" />
                     <span>{{ item.name }}</span>
@@ -84,6 +83,13 @@
         </List>
       </div>
     </div>
+    <RenameModel
+      :autoSubmitOnEnter="true"
+      :height="150"
+      :minHeight="10"
+      @register="registerRename"
+      @ok="renameHandle"
+    />
   </div>
 </template>
 
@@ -114,14 +120,19 @@
     Menu,
     Table,
   } from 'ant-design-vue';
-  import { volumeList } from '/@/api/mstore/volume';
+  import { volumeList, fileRename } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
   import { getPathInfo } from '/@/utils/filepath';
   import { sizeFmt } from '/@/utils/fmt';
   import { columns } from './FileData';
-  import FlieShowType from './FileShowType.vue';
-  import FileSort from './FileSort.vue';
+  import FlieShowType from './components/FileShowType.vue';
+  import RenameModel from './components/RenameModel.vue';
+  import FileSort from './components/FileSort.vue';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
+  import { useModal } from '/@/components/Modal';
+  import { useMessage } from '/@/hooks/web/useMessage';
+  const [registerRename, { openModal: openRenameModal }] = useModal();
+  const { createMessage } = useMessage();
   const volumeStore = useVolumeStoreWithOut();
   //每行个数
   const [createContextMenu] = useContextMenu();
@@ -136,7 +147,7 @@
   const showType = ref(1);
   const params = ref({
     order_field: 'name',
-    order_desc: 'asc',
+    order_desc: false,
   });
   const suspensionKey = ref(0);
   // 组件接收参数
@@ -205,9 +216,7 @@
           {
             label: `上传到此目录`,
             icon: 'bi:cloud-upload-fill',
-            handler: () => {
-              createMessage.success('click open');
-            },
+            handler: () => {},
           },
         ],
       });
@@ -247,63 +256,48 @@
       {
         label: '打开',
         icon: 'bx:bxs-folder-open',
-        handler: () => {
-          createMessage.success('click open');
-        },
+        handler: () => {},
       },
       {
         label: '下载',
         icon: 'bi:cloud-arrow-down-fill',
-        handler: () => {
-          createMessage.success('click open');
-        },
+        handler: () => {},
       },
-
       {
         label: '重命名',
         icon: 'ic:baseline-drive-file-rename-outline',
         handler: () => {
-          createMessage.success('click open');
+          openRenameModal(true, item);
         },
       },
       {
         label: '复制',
         icon: 'bx:bx-copy-alt',
-        handler: () => {
-          createMessage.success('click open');
-        },
+        handler: () => {},
       },
       {
         label: '粘贴',
         icon: 'bx:bx-copy',
-        handler: () => {
-          createMessage.success('click open');
-        },
+        handler: () => {},
       },
       {
         label: '删除',
         icon: 'ant-design:delete-filled',
-        handler: () => {
-          createMessage.success('click open');
-        },
+        handler: () => {},
       },
     ];
     if (checkVedio(item.ext)) {
       items[0] = {
         label: '播放视频',
         icon: 'ant-design:play-circle-filled',
-        handler: () => {
-          createMessage.success('click open');
-        },
+        handler: () => {},
       };
     }
     if (checkAudio(item.ext)) {
       items[0] = {
         label: '播放音乐',
         icon: 'ant-design:play-circle-outlined',
-        handler: () => {
-          createMessage.success('click open');
-        },
+        handler: () => {},
       };
     }
     createContextMenu({
@@ -375,6 +369,16 @@
       }
     }, 250);
   };
+
+  async function renameHandle(item, data) {
+    const res = await fileRename(item.volume_id, {
+      path: item.path + item.name,
+      new_path: item.path + data.name,
+    });
+    createMessage.success('文件重命名成功');
+    fetch();
+    openRenameModal(false, {});
+  }
 
   //表单提交
   async function handleSubmit() {

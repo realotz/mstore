@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -32,12 +33,22 @@ type ListOption struct {
 }
 
 type VolumeProvider interface {
+	// 供应商类型
 	GetProviderType() string
+	// 大文件上传
 	HttpBigUpload(w http.ResponseWriter, r *http.Request) error
+	// 上传文件
 	Upload(ctx context.Context, fileName string, data []byte) error
+	// 删除文件
 	Delete(ctx context.Context, fileName string) error
-	Open(ctx context.Context, fileName string) ([]byte, error)
+	// 打开文件
+	Open(ctx context.Context,name string) (io.ReadWriteCloser, error)
+	// 创建文件
+	Create(ctx context.Context,name string) (io.ReadWriteCloser, error)
+	// 文件列表
 	List(ctx context.Context, req ListOption) ([]FileInfo, error)
+	// 重命名
+	Rename(context.Context, string, string) error
 }
 
 type FileInfo struct {

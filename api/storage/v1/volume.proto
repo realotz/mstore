@@ -36,6 +36,64 @@ service VolumeService {
       get: "/api/v1/volume/{id}/files",
     };
   }
+  // 文件删除
+  rpc DelFile(DelFileReq)returns(core.v1.Empty){
+    option (google.api.http) = {
+      post: "/api/v1/volume/{id}/files/del",
+      body: "*"
+    };
+  }
+  // 移动与复制文件
+  rpc MoveAndCopyFile(MoveCopyFileReq)returns(core.v1.Empty){
+    option (google.api.http) = {
+      post: "/api/v1/volume/files/copy-move",
+      body: "*"
+    };
+  }
+  // 重命名文件
+  rpc RenameFile(RenameFileReq)returns(core.v1.Empty){
+    option (google.api.http) = {
+      post: "/api/v1/volume/{id}/files/rename",
+      body: "*"
+    };
+  }
+  // 获取文件下载地址
+  rpc FileDown(FileReq)returns(core.v1.Empty){
+    option (google.api.http) = {
+      get: "/api/v1/volume/{id}/down",
+    };
+  }
+}
+
+message FileReq {
+  // 存储卷id
+  string id = 1;
+  // 文件/目录路径
+  string path = 2;
+}
+
+message RenameFileReq {
+  // 存储卷id
+  string id = 1;
+  // 文件/目录路径
+  string path = 2;
+  // 文件/目录路径
+  string new_path = 3;
+}
+
+message MoveCopyFileReq{
+  // 文件列表
+  repeated FileReq files = 1;
+  bool is_delete = 2;
+  // 目标路径
+  string to_path = 3;
+  // 目标卷ID
+  string to_volume_id=4;
+}
+
+message DelFileReq{
+  // 文件列表
+  repeated FileReq files = 1;
 }
 
 message ListFileReq{

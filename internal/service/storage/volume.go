@@ -107,6 +107,38 @@ func (s *VolumeService) ListFile(ctx context.Context, req *storageV1.ListFileReq
 	return resp, nil
 }
 
+// 删除文件
+func (s *VolumeService) DelFile(ctx context.Context, req *storageV1.DelFileReq) (*v1.Empty, error) {
+	for _, v := range req.Files {
+		if err := s.uc.DelFile(ctx, v.Id, v.Path); err != nil {
+			return nil, err
+		}
+	}
+	return &v1.Empty{}, nil
+}
+
+// 移动/复制文件
+func (s *VolumeService) MoveAndCopyFile(ctx context.Context, req *storageV1.MoveCopyFileReq) (*v1.Empty, error) {
+	if err := s.uc.MoveFile(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.Empty{}, nil
+}
+
+// 重命名文件
+func (s *VolumeService) RenameFile(ctx context.Context, req *storageV1.RenameFileReq) (*v1.Empty, error) {
+	if err := s.uc.RenameFile(ctx, req.Id, req.Path, req.NewPath); err != nil {
+		return nil, err
+	}
+	return &v1.Empty{}, nil
+}
+
+// 获取下载地址
+func (s *VolumeService) FileDown(ctx context.Context, req *storageV1.FileReq) (*v1.Empty, error) {
+	panic("implement me")
+}
+
+// http 文件上传
 func (s *VolumeService) ServeHTTP(w http2.ResponseWriter, r *http2.Request) {
 	paths := strings.Split(r.URL.String(), "/")
 	if len(paths) < 5 {

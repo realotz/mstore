@@ -3,8 +3,11 @@ package storage
 import (
 	"context"
 	"github.com/google/wire"
+	storageV1 "github.com/realotz/mstore/api/storage/v1"
 	"github.com/realotz/mstore/internal/biz/storage/provider"
+	"io"
 	"net/http"
+	"path/filepath"
 )
 
 var ProviderSet = wire.NewSet(NewVolumeManager, NewStorageUseCase)
@@ -44,10 +47,69 @@ func (s *StorageUseCase) CreateVolume(ctx context.Context, vol Volume) (*Volume,
 }
 
 // 文件列表
-func (s *StorageUseCase) ListFile(ctx context.Context,id string, op provider.ListOption) ([]provider.FileInfo, error) {
+func (s *StorageUseCase) ListFile(ctx context.Context, id string, op provider.ListOption) ([]provider.FileInfo, error) {
 	volume, err := s.volumeManager.GetVolume(id)
 	if err != nil {
 		return nil, err
 	}
 	return volume.Provider.List(ctx, op)
+}
+
+// 删除文件
+func (s *StorageUseCase) DelFile(ctx context.Context, id string, path string) error {
+	volume, err := s.volumeManager.GetVolume(id)
+	if err != nil {
+		return err
+	}
+	return volume.Provider.Delete(ctx, path)
+}
+
+// 重命名文件
+func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPath string) error {
+	volume, err := s.volumeManager.GetVolume(id)
+	if err != nil {
+		return err
+	}
+	return volume.Provider.Rename(ctx, path, newPath)
+}
+
+// 复制/移动文件
+func (s *StorageUseCase) MoveFile(ctx context.Context, req *storageV1.MoveCopyFileReq) error {
+	newVolume, err := s.volumeManager.GetVolume(req.ToVolumeId)
+	if err != nil {
+		return err
+	}
+	for _, v := range req.Files {
+		var volume *Volume
+		if v.Id == req.ToVolumeId {
+			volume = newVolume
+		}
+		if req.IsDelete && v.Id == req.ToVolumeId {
+			if err = volume.Provider.Rename(ctx, v.Path, req.ToPath); err != nil {
+				return err
+			}
+		} else {
+			volume, err = s.volumeManager.GetVolume(v.Id)
+			if err != nil {
+				return err
+			}
+			file, err := volume.Provider.Open(ctx, v.Path)
+			if err != nil {
+				return err
+			}
+			_, fileName := filepath.Split(v.Path)
+			nf, err := newVolume.Provider.Create(ctx, filepath.Join(req.ToPath, fileName))
+			if err != nil {
+				_ = file.Close()
+				return err
+			}
+			_, err = io.Copy(nf, file)
+			if err != nil {
+				_ = file.Close()
+				_ = nf.Close()
+				return err
+			}
+		}
+	}
+	return nil
 }

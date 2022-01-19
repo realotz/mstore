@@ -20,9 +20,13 @@ const _ = http.SupportPackageIsVersion1
 
 type VolumeServiceHTTPServer interface {
 	CreateVolume(context.Context, *CreateVolumeReq) (*Volume, error)
+	DelFile(context.Context, *DelFileReq) (*v1.Empty, error)
 	DeleteVolume(context.Context, *DeleteVolumeReq) (*v1.Empty, error)
+	FileDown(context.Context, *FileReq) (*v1.Empty, error)
 	ListFile(context.Context, *ListFileReq) (*ListFileReply, error)
 	ListVolume(context.Context, *ListVolumeReq) (*ListVolumeReply, error)
+	MoveAndCopyFile(context.Context, *MoveCopyFileReq) (*v1.Empty, error)
+	RenameFile(context.Context, *RenameFileReq) (*v1.Empty, error)
 }
 
 func RegisterVolumeServiceHTTPServer(s *http.Server, srv VolumeServiceHTTPServer) {
@@ -31,6 +35,10 @@ func RegisterVolumeServiceHTTPServer(s *http.Server, srv VolumeServiceHTTPServer
 	r.DELETE("/api/v1/volume/{id}", _VolumeService_DeleteVolume0_HTTP_Handler(srv))
 	r.GET("/api/v1/volume", _VolumeService_ListVolume0_HTTP_Handler(srv))
 	r.GET("/api/v1/volume/{id}/files", _VolumeService_ListFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/volume/{id}/files/del", _VolumeService_DelFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/volume/files/copy-move", _VolumeService_MoveAndCopyFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/volume/{id}/files/rename", _VolumeService_RenameFile0_HTTP_Handler(srv))
+	r.GET("/api/v1/volume/{id}/down", _VolumeService_FileDown0_HTTP_Handler(srv))
 }
 
 func _VolumeService_CreateVolume0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
@@ -115,11 +123,100 @@ func _VolumeService_ListFile0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx
 	}
 }
 
+func _VolumeService_DelFile0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DelFileReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, "/api.service.storage.v1.volume.VolumeService/DelFile")
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DelFile(ctx, req.(*DelFileReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*v1.Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _VolumeService_MoveAndCopyFile0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in MoveCopyFileReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, "/api.service.storage.v1.volume.VolumeService/MoveAndCopyFile")
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.MoveAndCopyFile(ctx, req.(*MoveCopyFileReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*v1.Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _VolumeService_RenameFile0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RenameFileReq
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, "/api.service.storage.v1.volume.VolumeService/RenameFile")
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RenameFile(ctx, req.(*RenameFileReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*v1.Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _VolumeService_FileDown0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in FileReq
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, "/api.service.storage.v1.volume.VolumeService/FileDown")
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.FileDown(ctx, req.(*FileReq))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*v1.Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
 type VolumeServiceHTTPClient interface {
 	CreateVolume(ctx context.Context, req *CreateVolumeReq, opts ...http.CallOption) (rsp *Volume, err error)
+	DelFile(ctx context.Context, req *DelFileReq, opts ...http.CallOption) (rsp *v1.Empty, err error)
 	DeleteVolume(ctx context.Context, req *DeleteVolumeReq, opts ...http.CallOption) (rsp *v1.Empty, err error)
+	FileDown(ctx context.Context, req *FileReq, opts ...http.CallOption) (rsp *v1.Empty, err error)
 	ListFile(ctx context.Context, req *ListFileReq, opts ...http.CallOption) (rsp *ListFileReply, err error)
 	ListVolume(ctx context.Context, req *ListVolumeReq, opts ...http.CallOption) (rsp *ListVolumeReply, err error)
+	MoveAndCopyFile(ctx context.Context, req *MoveCopyFileReq, opts ...http.CallOption) (rsp *v1.Empty, err error)
+	RenameFile(ctx context.Context, req *RenameFileReq, opts ...http.CallOption) (rsp *v1.Empty, err error)
 }
 
 type VolumeServiceHTTPClientImpl struct {
@@ -143,6 +240,19 @@ func (c *VolumeServiceHTTPClientImpl) CreateVolume(ctx context.Context, in *Crea
 	return &out, err
 }
 
+func (c *VolumeServiceHTTPClientImpl) DelFile(ctx context.Context, in *DelFileReq, opts ...http.CallOption) (*v1.Empty, error) {
+	var out v1.Empty
+	pattern := "/api/v1/volume/{id}/files/del"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/DelFile"))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
 func (c *VolumeServiceHTTPClientImpl) DeleteVolume(ctx context.Context, in *DeleteVolumeReq, opts ...http.CallOption) (*v1.Empty, error) {
 	var out v1.Empty
 	pattern := "/api/v1/volume/{id}"
@@ -150,6 +260,19 @@ func (c *VolumeServiceHTTPClientImpl) DeleteVolume(ctx context.Context, in *Dele
 	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/DeleteVolume"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *VolumeServiceHTTPClientImpl) FileDown(ctx context.Context, in *FileReq, opts ...http.CallOption) (*v1.Empty, error) {
+	var out v1.Empty
+	pattern := "/api/v1/volume/{id}/down"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/FileDown"))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +299,32 @@ func (c *VolumeServiceHTTPClientImpl) ListVolume(ctx context.Context, in *ListVo
 	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/ListVolume"))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *VolumeServiceHTTPClientImpl) MoveAndCopyFile(ctx context.Context, in *MoveCopyFileReq, opts ...http.CallOption) (*v1.Empty, error) {
+	var out v1.Empty
+	pattern := "/api/v1/volume/files/copy-move"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/MoveAndCopyFile"))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
+}
+
+func (c *VolumeServiceHTTPClientImpl) RenameFile(ctx context.Context, in *RenameFileReq, opts ...http.CallOption) (*v1.Empty, error) {
+	var out v1.Empty
+	pattern := "/api/v1/volume/{id}/files/rename"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/RenameFile"))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,11 @@ export type ListFileParams = {
   option?: BasicPageParams;
 };
 
+export type FileReanmeParams = {
+  path: string;
+  new_path: string;
+};
+
 export interface VolumeListItem {
   id: string;
   name: string;
@@ -28,6 +33,7 @@ export interface FileListItem {
   is_dir: boolean;
   size: number;
   updated_at: number;
+  volume_id: string;
 }
 
 /**

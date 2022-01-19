@@ -27,6 +27,14 @@ type VolumeServiceClient interface {
 	ListVolume(ctx context.Context, in *ListVolumeReq, opts ...grpc.CallOption) (*ListVolumeReply, error)
 	// 文件列表
 	ListFile(ctx context.Context, in *ListFileReq, opts ...grpc.CallOption) (*ListFileReply, error)
+	// 文件删除
+	DelFile(ctx context.Context, in *DelFileReq, opts ...grpc.CallOption) (*v1.Empty, error)
+	// 移动与复制文件
+	MoveAndCopyFile(ctx context.Context, in *MoveCopyFileReq, opts ...grpc.CallOption) (*v1.Empty, error)
+	// 重命名文件
+	RenameFile(ctx context.Context, in *RenameFileReq, opts ...grpc.CallOption) (*v1.Empty, error)
+	// 获取文件下载地址
+	FileDown(ctx context.Context, in *FileReq, opts ...grpc.CallOption) (*v1.Empty, error)
 }
 
 type volumeServiceClient struct {
@@ -73,6 +81,42 @@ func (c *volumeServiceClient) ListFile(ctx context.Context, in *ListFileReq, opt
 	return out, nil
 }
 
+func (c *volumeServiceClient) DelFile(ctx context.Context, in *DelFileReq, opts ...grpc.CallOption) (*v1.Empty, error) {
+	out := new(v1.Empty)
+	err := c.cc.Invoke(ctx, "/api.service.storage.v1.volume.VolumeService/DelFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *volumeServiceClient) MoveAndCopyFile(ctx context.Context, in *MoveCopyFileReq, opts ...grpc.CallOption) (*v1.Empty, error) {
+	out := new(v1.Empty)
+	err := c.cc.Invoke(ctx, "/api.service.storage.v1.volume.VolumeService/MoveAndCopyFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *volumeServiceClient) RenameFile(ctx context.Context, in *RenameFileReq, opts ...grpc.CallOption) (*v1.Empty, error) {
+	out := new(v1.Empty)
+	err := c.cc.Invoke(ctx, "/api.service.storage.v1.volume.VolumeService/RenameFile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *volumeServiceClient) FileDown(ctx context.Context, in *FileReq, opts ...grpc.CallOption) (*v1.Empty, error) {
+	out := new(v1.Empty)
+	err := c.cc.Invoke(ctx, "/api.service.storage.v1.volume.VolumeService/FileDown", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VolumeServiceServer is the server API for VolumeService service.
 // All implementations must embed UnimplementedVolumeServiceServer
 // for forward compatibility
@@ -85,6 +129,14 @@ type VolumeServiceServer interface {
 	ListVolume(context.Context, *ListVolumeReq) (*ListVolumeReply, error)
 	// 文件列表
 	ListFile(context.Context, *ListFileReq) (*ListFileReply, error)
+	// 文件删除
+	DelFile(context.Context, *DelFileReq) (*v1.Empty, error)
+	// 移动与复制文件
+	MoveAndCopyFile(context.Context, *MoveCopyFileReq) (*v1.Empty, error)
+	// 重命名文件
+	RenameFile(context.Context, *RenameFileReq) (*v1.Empty, error)
+	// 获取文件下载地址
+	FileDown(context.Context, *FileReq) (*v1.Empty, error)
 	mustEmbedUnimplementedVolumeServiceServer()
 }
 
@@ -103,6 +155,18 @@ func (UnimplementedVolumeServiceServer) ListVolume(context.Context, *ListVolumeR
 }
 func (UnimplementedVolumeServiceServer) ListFile(context.Context, *ListFileReq) (*ListFileReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFile not implemented")
+}
+func (UnimplementedVolumeServiceServer) DelFile(context.Context, *DelFileReq) (*v1.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelFile not implemented")
+}
+func (UnimplementedVolumeServiceServer) MoveAndCopyFile(context.Context, *MoveCopyFileReq) (*v1.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MoveAndCopyFile not implemented")
+}
+func (UnimplementedVolumeServiceServer) RenameFile(context.Context, *RenameFileReq) (*v1.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenameFile not implemented")
+}
+func (UnimplementedVolumeServiceServer) FileDown(context.Context, *FileReq) (*v1.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FileDown not implemented")
 }
 func (UnimplementedVolumeServiceServer) mustEmbedUnimplementedVolumeServiceServer() {}
 
@@ -189,6 +253,78 @@ func _VolumeService_ListFile_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VolumeService_DelFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelFileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServiceServer).DelFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.service.storage.v1.volume.VolumeService/DelFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServiceServer).DelFile(ctx, req.(*DelFileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VolumeService_MoveAndCopyFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MoveCopyFileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServiceServer).MoveAndCopyFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.service.storage.v1.volume.VolumeService/MoveAndCopyFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServiceServer).MoveAndCopyFile(ctx, req.(*MoveCopyFileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VolumeService_RenameFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenameFileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServiceServer).RenameFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.service.storage.v1.volume.VolumeService/RenameFile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServiceServer).RenameFile(ctx, req.(*RenameFileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VolumeService_FileDown_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VolumeServiceServer).FileDown(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.service.storage.v1.volume.VolumeService/FileDown",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VolumeServiceServer).FileDown(ctx, req.(*FileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VolumeService_ServiceDesc is the grpc.ServiceDesc for VolumeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -211,6 +347,22 @@ var VolumeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFile",
 			Handler:    _VolumeService_ListFile_Handler,
+		},
+		{
+			MethodName: "DelFile",
+			Handler:    _VolumeService_DelFile_Handler,
+		},
+		{
+			MethodName: "MoveAndCopyFile",
+			Handler:    _VolumeService_MoveAndCopyFile_Handler,
+		},
+		{
+			MethodName: "RenameFile",
+			Handler:    _VolumeService_RenameFile_Handler,
+		},
+		{
+			MethodName: "FileDown",
+			Handler:    _VolumeService_FileDown_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

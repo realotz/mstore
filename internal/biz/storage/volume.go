@@ -20,7 +20,9 @@ type Volume struct {
 }
 
 type VolumeRepo interface {
+	// 存储
 	Store(context.Context, Volume) error
+	// 加载全部文件信息
 	LoadAll(context.Context) ([]Volume, error)
 	Delete(context.Context, string) error
 }
