@@ -28,9 +28,23 @@
         type: String,
         require: true,
       },
+      resetPath: {
+        type: String,
+        require: true,
+      },
     },
     emits: ['select'],
     setup(props, { emit }) {
+      watch(
+        () => props.resetPath,
+        (v: string) => {
+          if (v) {
+            const paths = v.split('/');
+            paths.pop();
+            loadTree(paths.join('/'));
+          }
+        },
+      );
       watch(
         () => volumeStore.getVolumes,
         (v: string) => {

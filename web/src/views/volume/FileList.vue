@@ -165,7 +165,7 @@
     },
   );
   //暴露内部方法
-  const emit = defineEmits(['selectDir']);
+  const emit = defineEmits(['selectDir', 'resetDir']);
   // 自动请求并暴露内部方法
   onMounted(() => {
     fetch();
@@ -371,13 +371,18 @@
   };
 
   async function renameHandle(item, data) {
+    let path = item.path;
+    if (path !== '/') {
+      path = path + '/';
+    }
     const res = await fileRename(item.volume_id, {
-      path: item.path + item.name,
-      new_path: item.path + data.name,
+      path: path + item.name,
+      new_path: path + data.name,
     });
     createMessage.success('文件重命名成功');
     fetch();
     openRenameModal(false, {});
+    emit('resetDir', `/${item.volume_id}${item.path}/${data.name}`);
   }
 
   //表单提交
