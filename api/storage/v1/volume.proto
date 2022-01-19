@@ -42,7 +42,9 @@ message ListFileReq{
   string id = 1;
   string path = 2;
   // 类型 0 全部 1 目录 2 字符串
-  uint32 type = 3;
+  uint32 type=3;
+  // 公用列表查询条件
+  core.v1.ListOption option = 99;
 }
 
 // 存储卷列表

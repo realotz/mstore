@@ -47,6 +47,16 @@ func (m *ListFileReq) Validate() error {
 
 	// no validation rules for Type
 
+	if v, ok := interface{}(m.GetOption()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListFileReqValidationError{
+				field:  "Option",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 

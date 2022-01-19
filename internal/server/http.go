@@ -11,6 +11,7 @@ import (
 	"github.com/realotz/mstore/internal/biz"
 	"github.com/realotz/mstore/internal/conf"
 	"github.com/realotz/mstore/internal/service/storage"
+	_ "github.com/realotz/mstore/pkg/encoding/form"
 	"github.com/realotz/mstore/pkg/middleware/auth"
 	"github.com/realotz/mstore/pkg/middleware/filter"
 	"github.com/realotz/mstore/pkg/middleware/logging"
@@ -55,6 +56,6 @@ func NewHTTPServer(c *conf.Server, logger log.Logger,
 	userV1.RegisterUserServiceHTTPServer(srv, user)
 	userV1.RegisterAuthServiceHTTPServer(srv, authV1)
 	storageV1.RegisterVolumeServiceHTTPServer(srv, volume)
-	srv.HandlePrefix("/api/v1/big-upload",volume)
+	srv.HandlePrefix("/api/v1/big-upload", volume)
 	return srv
 }

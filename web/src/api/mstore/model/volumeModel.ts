@@ -9,6 +9,7 @@ export type VolumeParams = {
 export type ListFileParams = {
   path?: string;
   type?: number;
+  option?: BasicPageParams;
 };
 
 export interface VolumeListItem {

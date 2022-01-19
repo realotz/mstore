@@ -177,24 +177,34 @@ func (p *localProvider) List(ctx context.Context, req ListOption) ([]FileInfo, e
 			})
 		}
 	}
-	switch req.SortFlag {
-	case NameDescSort:
-		sort.Slice(list, func(i, j int) bool { return list[i].Name > list[j].Name })
+	switch req.Sort {
+	case NameSort:
+		if req.SortDesc {
+			sort.Slice(list, func(i, j int) bool { return list[i].Name > list[j].Name })
+		} else {
+			sort.Slice(list, func(i, j int) bool { return list[i].Name < list[j].Name })
+		}
 		break
-	case NameAscSort:
-		sort.Slice(list, func(i, j int) bool { return list[i].Name < list[j].Name })
+	case TimeSort:
+		if req.SortDesc {
+			sort.Slice(list, func(i, j int) bool { return list[i].UpdatedAt > list[j].UpdatedAt })
+		} else {
+			sort.Slice(list, func(i, j int) bool { return list[i].UpdatedAt < list[j].UpdatedAt })
+		}
 		break
-	case TimeDescSort:
-		sort.Slice(list, func(i, j int) bool { return list[i].UpdatedAt > list[j].UpdatedAt })
+	case SizeSort:
+		if req.SortDesc {
+			sort.Slice(list, func(i, j int) bool { return list[i].Size > list[j].Size })
+		} else {
+			sort.Slice(list, func(i, j int) bool { return list[i].Size < list[j].Size })
+		}
 		break
-	case TimeAscSort:
-		sort.Slice(list, func(i, j int) bool { return list[i].UpdatedAt < list[j].UpdatedAt })
-		break
-	case SizeDescSort:
-		sort.Slice(list, func(i, j int) bool { return list[i].Size > list[j].Size })
-		break
-	case SizeAscSort:
-		sort.Slice(list, func(i, j int) bool { return list[i].Size < list[j].Size })
+	case ExtSort:
+		if req.SortDesc {
+			sort.Slice(list, func(i, j int) bool { return list[i].Ext > list[j].Ext })
+		} else {
+			sort.Slice(list, func(i, j int) bool { return list[i].Ext < list[j].Ext })
+		}
 		break
 	}
 	return list, nil

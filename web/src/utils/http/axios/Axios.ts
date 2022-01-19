@@ -176,7 +176,16 @@ export class VAxios {
   }
 
   get<T = any>(config: AxiosRequestConfig, options?: RequestOptions): Promise<T> {
-    return this.request({ ...config, method: 'GET' }, options);
+    return this.request(
+      {
+        ...config,
+        method: 'GET',
+        paramsSerializer: function (params) {
+          return qs.stringify(params, { arrayFormat: 'brackets' });
+        },
+      },
+      options,
+    );
   }
 
   post<T = any>(config: AxiosRequestConfig, options?: RequestOptions): Promise<T> {

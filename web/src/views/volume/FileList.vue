@@ -17,55 +17,11 @@
             <template #icon> <RedoOutlined /></template>
           </Button>
           <Breadcrumb style="width: 600px" :path="pathState" @select="breadSelect" />
-          <InputSearch enter-button />
+          <!-- <InputSearch enter-button /> -->
         </Space>
         <Space style="width: 10%; flex-direction: row-reverse">
-          <Dropdown>
-            <Button value="small">
-              <template #icon> <FunnelPlotOutlined /> </template>
-            </Button>
-            <template #overlay>
-              <Menu>
-                <MenuItem>
-                  <span href="javascript:;">名称</span>
-                </MenuItem>
-                <MenuItem>
-                  <span href="javascript:;">大小</span>
-                </MenuItem>
-                <MenuItem>
-                  <span href="javascript:;">修改日期</span>
-                </MenuItem>
-                <MenuItem>
-                  <span href="javascript:;">文件类型</span>
-                </MenuItem>
-                <MenuDivider />
-                <MenuItem>
-                  <span href="javascript:;">从小到大</span>
-                </MenuItem>
-                <MenuItem>
-                  <span href="javascript:;">从大到小</span>
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
-          <Dropdown>
-            <Button value="small">
-              <template #icon> <AppstoreOutlined /> </template>
-            </Button>
-            <template #overlay>
-              <Menu selectable @click="handleShow" v-model:selectedKeys="selectedShowKeys">
-                <MenuItem :key="0">
-                  <span href="javascript:;">列表视图</span>
-                </MenuItem>
-                <MenuItem :key="1">
-                  <span href="javascript:;">小图标</span>
-                </MenuItem>
-                <MenuItem :key="2">
-                  <span href="javascript:;">大图标</span>
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
+          <FileSort @select="handleSortSelect" />
+          <FlieShowType @select="handleShowSelect" />
         </Space>
       </div>
       <BasicTable
@@ -74,7 +30,7 @@
         :dataSource="data"
         :loading="loading"
         :pagination="{ pageSize: 100 }"
-        bordered="true"
+        :bordered="true"
         rowKey="name"
       >
         <template #name="{ record }">
@@ -142,9 +98,6 @@
     RedoOutlined,
     LeftOutlined,
     RightOutlined,
-    TableOutlined,
-    AppstoreOutlined,
-    FunnelPlotOutlined,
   } from '@ant-design/icons-vue';
   import {
     List,
@@ -158,44 +111,18 @@
     InputSearch,
     Button,
     Space,
-    Dropdown,
     Menu,
-    MenuItem,
-    MenuDivider,
     Table,
   } from 'ant-design-vue';
   import { volumeList } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
   import { getPathInfo } from '/@/utils/filepath';
   import { sizeFmt } from '/@/utils/fmt';
+  import { columns } from './FileData';
+  import FlieShowType from './FileShowType.vue';
+  import FileSort from './FileSort.vue';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   const volumeStore = useVolumeStoreWithOut();
-  const columns = [
-    {
-      title: '名称',
-      dataIndex: 'name',
-      align: 'left',
-      slots: { customRender: 'name' },
-    },
-    {
-      title: '大小',
-      dataIndex: 'size',
-      width: 150,
-      slots: { customRender: 'size' },
-    },
-    {
-      title: '类型',
-      dataIndex: 'ext',
-      width: 150,
-      slots: { customRender: 'ext' },
-    },
-    {
-      title: '修改日期',
-      width: 200,
-      dataIndex: 'updated_at',
-      slots: { customRender: 'updated_at' },
-    },
-  ];
   //每行个数
   const [createContextMenu] = useContextMenu();
   const grid = ref(12);
@@ -205,11 +132,12 @@
   //数据
   const data = ref([]);
   const pathState = ref('');
-  // 前进按钮的栈格式
-  const forwardStake = ref([]);
   // 展示类型
   const showType = ref(1);
-  const selectedShowKeys = ref([1]);
+  const params = ref({
+    order_field: 'name',
+    order_desc: 'asc',
+  });
   const suspensionKey = ref(0);
   // 组件接收参数
   const props = defineProps({
@@ -226,8 +154,7 @@
     },
   );
   //暴露内部方法
-  const emit = defineEmits(['selectDir', 'delete']);
-
+  const emit = defineEmits(['selectDir']);
   // 自动请求并暴露内部方法
   onMounted(() => {
     fetch();
@@ -241,8 +168,16 @@
     suspensionKey.value = 0;
   };
 
-  const handleShow = (item) => {
-    showType.value = item.key;
+  const handleShowSelect = (key) => {
+    showType.value = key;
+  };
+
+  const handleSortSelect = (sortName, sortType) => {
+    params.value = {
+      order_field: sortName,
+      order_desc: sortType == 'desc',
+    };
+    fetch();
   };
 
   const handleBodyContext = (e) => {
@@ -462,6 +397,12 @@
     if (item.ext === '.zip') {
       return '/resource/img/zip.png';
     }
+    if (item.ext === '.pdf') {
+      return '/resource/img/pdf.png';
+    }
+    if (item.ext === '.html') {
+      return '/resource/img/html.png';
+    }
     return '/resource/img/misc.png';
   };
 
@@ -472,6 +413,7 @@
       const info = getPathInfo(path);
       const res = await volumeList(info[0], {
         path: info[1],
+        option: params.value,
       });
       data.value = res.list;
     }

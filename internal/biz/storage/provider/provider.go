@@ -13,23 +13,22 @@ const (
 	VolumeTypeCos   = "cos"
 )
 
-type FileSort uint
+type FileSort string
 
 const (
-	NoSort       = FileSort(0)
-	NameDescSort = FileSort(1)
-	NameAscSort  = FileSort(2)
-	TimeDescSort = FileSort(3)
-	TimeAscSort  = FileSort(4)
-	SizeDescSort = FileSort(5)
-	SizeAscSort  = FileSort(6)
+	NoSort   = FileSort("")
+	NameSort = FileSort("name")
+	ExtSort = FileSort("ext")
+	TimeSort = FileSort("updated_at")
+	SizeSort = FileSort("size")
 )
 
 type ListOption struct {
 	Path     string
 	HideFile bool
 	Type     uint32
-	SortFlag FileSort
+	Sort     FileSort
+	SortDesc bool
 }
 
 type VolumeProvider interface {

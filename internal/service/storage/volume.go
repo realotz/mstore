@@ -76,12 +76,16 @@ func (s *VolumeService) ListVolume(ctx context.Context, req *storageV1.ListVolum
 
 // 文件列表
 func (s *VolumeService) ListFile(ctx context.Context, req *storageV1.ListFileReq) (*storageV1.ListFileReply, error) {
-	list, err := s.uc.ListFile(ctx, req.Id, provider.ListOption{
+	op := provider.ListOption{
 		Path:     req.Path,
 		HideFile: false,
 		Type:     req.Type,
-		SortFlag: 0,
-	})
+	}
+	if req.Option != nil {
+		op.Sort = provider.FileSort(req.Option.OrderField)
+		op.SortDesc = req.Option.OrderDesc
+	}
+	list, err := s.uc.ListFile(ctx, req.Id, op)
 	if err != nil {
 		return nil, errors.ErrorBusinessError(err.Error())
 	}
