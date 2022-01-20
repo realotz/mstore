@@ -26,7 +26,6 @@
     name: 'FlieShowType',
     components: { Dropdown, Menu, MenuItem, Button, AppstoreOutlined },
     props: {},
-
     emits: ['select'],
     setup(props, { emit }) {
       const selectedShowKeys = ref([1]);

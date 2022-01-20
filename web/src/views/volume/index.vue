@@ -2,6 +2,7 @@
   <PageWrapper dense contentFullHeight fixedHeight>
     <div class="flex h-full">
       <VolumeTree
+        @mouseup="handleTest"
         class="w-1/4 xl:w-1/5"
         :resetPath="resetPath"
         @select="handleSelect"
@@ -39,6 +40,9 @@
   };
   const handleSelect = (key) => {
     pathRef.value = key;
+  };
+  const handleTest = (e: Event) => {
+    console.log('222');
   };
   const resetPathHandle = (key) => {
     console.log(key);

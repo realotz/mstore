@@ -53,8 +53,9 @@
           <template #renderItem="{ item, index }">
             <ListItem style="text-align: center">
               <div
+                :indexkey="index + 1"
                 :class="
-                  selectKey == index + 1
+                  selectKey.indexOf(index + 1) > -1
                     ? `file-item-select file-item${showType}`
                     : `file-item${showType}`
                 "
@@ -95,9 +96,10 @@
 
 <script lang="ts" setup>
   import Breadcrumb from './Breadcrumb.vue';
-  import { computed, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch, reactive, onUnmounted } from 'vue';
   import { BasicTable, useTable } from '/@/components/Table';
   import { useContextMenu } from '/@/hooks/web/useContextMenu';
+  import { SelectArea, closeArea } from './components/SelectArea';
   import {
     EditOutlined,
     EllipsisOutlined,
@@ -137,7 +139,7 @@
   //每行个数
   const [createContextMenu] = useContextMenu();
   const grid = ref(12);
-  const selectKey = ref(0);
+  const selectKey = ref([]);
   const loading = ref(false);
   const ListItem = List.Item;
   //数据
@@ -169,20 +171,24 @@
   // 自动请求并暴露内部方法
   onMounted(() => {
     fetch();
+    document.body.onselectstart = new Function('return false');
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   });
 
-  const suspensionItem = (key) => {
-    suspensionKey.value = key;
-  };
+  onUnmounted(() => {
+    document.removeEventListener('mousedown', handleMouseDown);
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  });
 
-  const outSuspensionItem = (key) => {
-    suspensionKey.value = 0;
-  };
-
+  // 视图显示
   const handleShowSelect = (key) => {
     showType.value = key;
   };
 
+  // 筛选排序
   const handleSortSelect = (sortName, sortType) => {
     params.value = {
       order_field: sortName,
@@ -191,7 +197,137 @@
     fetch();
   };
 
+  // 选中文件
+  const suspensionItem = (key) => {
+    suspensionKey.value = key;
+  };
+  // 取消选中
+  const outSuspensionItem = (key) => {
+    suspensionKey.value = 0;
+  };
+
+  //鼠标是否按下
+
+  const mouseDown = ref(false);
+  const mouseComplete = ref(false);
+
+  let selectProps = reactive({
+    startPoint: {
+      x: 0,
+      y: 0,
+    },
+    endPoint: {
+      x: 0,
+      y: 0,
+    },
+  });
+
+  /**
+   * 获取该元素下可以被选中的元素集合
+   * @param parentElement 父元素
+   * @param selectBoxElement 选择框元素
+   * @param keyCode 可选元素标识
+   * @returns
+   */
+  function selectElement(parentElement: HTMLElement, selectBoxElement: HTMLElement) {
+    const canCheckedElements = parentElement.querySelectorAll(`.file-item${showType.value}`);
+    const containElements = judgeContainElement(selectBoxElement, canCheckedElements);
+    return {
+      containElements,
+      canCheckedElements,
+    };
+  }
+
+  /**
+   *
+   * 获取该元素下可以被选中的元素集合
+   * @param parentElement 父元素
+   * @param keyCode 可选元素标识
+   * @returns
+   */
+  function getChildrens(parentElement: HTMLElement, keyCode: string) {
+    const ary = [];
+    const childs = parentElement.childNodes;
+    for (let i = 0; i < childs.length; i++) {
+      if (childs[i].nodeType === 1) {
+        if ((childs[i] as HTMLElement).getAttribute(keyCode) !== null) {
+          ary.push(childs[i]);
+        }
+      }
+    }
+    return ary as Array<HTMLElement>;
+  }
+
+  function judgeContainElement(
+    selectBoxElement: HTMLElement,
+    canCheckedElements: Array<HTMLElement>,
+  ) {
+    const ContainElement: Array<HTMLElement> = [];
+    const { left, right, bottom, top } = selectBoxElement.getBoundingClientRect();
+    canCheckedElements.forEach((item) => {
+      const child = item.getBoundingClientRect();
+      if (child.left > left && child.top > top && child.bottom < bottom && child.right < right) {
+        ContainElement.push(item);
+      }
+    });
+    return ContainElement;
+  }
+  let mouseTime;
+
+  const handleMouseDown = (e: Event) => {
+    mouseTime = setTimeout(function () {
+      mouseDown.value = true;
+      console.log('鼠标按下');
+      closeArea();
+      selectProps.startPoint.x = e.clientX - 2;
+      selectProps.startPoint.y = e.clientY - 2;
+      SelectArea(selectProps);
+      mouseDown.value = true;
+      mouseComplete.value = false;
+      mouseTime = undefined;
+    }, 250);
+  };
+
+  let allSelectKey = [];
+
+  const handleMouseUp = (e: Event) => {
+    if (mouseTime) {
+      clearTimeout(mouseTime);
+    }
+    console.log('鼠标松开');
+    console.log(allSelectKey);
+    mouseDown.value = false;
+    mouseComplete.value = true;
+    selectProps.startPoint.x = 0;
+    selectProps.startPoint.y = 0;
+    selectProps.endPoint.x = 0;
+    selectProps.endPoint.y = 0;
+    closeArea();
+    selectKey.value = allSelectKey;
+    allSelectKey = [];
+  };
+
+  const handleMouseMove = (e: Event) => {
+    if (mouseDown.value && !mouseComplete.value) {
+      selectProps.endPoint.x = e.clientX - 2;
+      selectProps.endPoint.y = e.clientY - 2;
+      const div = document.querySelector('#select-area');
+      const parent = document.querySelector('.list-body');
+      const containDiv = selectElement(parent as HTMLElement, div as HTMLElement);
+      containDiv.canCheckedElements.forEach((item) => {
+        item.className = `file-item${showType.value}`;
+      });
+      allSelectKey = containDiv.containElements.map((item) => {
+        item.className = `file-item-select file-item${showType.value}`;
+        return parseInt(item.getAttribute('indexkey'));
+      });
+    }
+  };
+
+  // 右键绑定
   const handleBodyContext = (e) => {
+    mouseDown.value = false;
+    // 有选中元素
     if (suspensionKey.value != 0) {
       return handleItemContext(e, suspensionKey.value);
     }
@@ -223,34 +359,8 @@
     }
   };
 
-  const checkVedio = (ext) => {
-    if (
-      ext == '.mp4' ||
-      ext == '.mov' ||
-      ext == '.qt' ||
-      ext == '.mpg' ||
-      ext == '.avi' ||
-      ext == '.mod' ||
-      ext == '.flv' ||
-      ext == '.rmvb' ||
-      ext == '.mkv' ||
-      ext == '.rm' ||
-      ext == '.wmv'
-    ) {
-      return true;
-    }
-    return false;
-  };
-
-  const checkAudio = (ext) => {
-    if (ext == '.wav' || ext == '.mp3' || ext == '.ogg' || ext == '.acc' || ext == '.webm') {
-      return true;
-    }
-    return false;
-  };
-
+  // 有元素的时候右键
   const handleItemContext = (e, key) => {
-    console.log(e, key);
     const item = data.value[key - 1];
     let items = [
       {
@@ -306,9 +416,6 @@
     });
   };
 
-  // 双击判断
-  const clickTimes = ref(0);
-
   // 前进操作
   const handleAdvance = () => {
     const path = volumeStore.getAdvancePath();
@@ -317,6 +424,7 @@
       emit('selectDir', path);
     }
   };
+
   // 后退操作
   const handleBack = () => {
     const path = volumeStore.getBackPath();
@@ -344,13 +452,16 @@
     }
   };
 
-  // 选择文件夹
+  // 双击判断
+  const clickTimes = ref(0);
+  // 文件单击选中
   const selectItem = (key: number) => {
-    selectKey.value = key;
+    selectKey.value = [key];
+    console.log(selectKey.value);
     clickTimes.value++;
     if (clickTimes.value === 2) {
       clickTimes.value = 0;
-      selectKey.value = 0;
+      selectKey.value = [];
       const item = data.value[key - 1];
       if (item.is_dir) {
         volumeStore.addBackPath(props.path);
@@ -365,11 +476,12 @@
     setTimeout(function () {
       if (clickTimes.value === 1) {
         clickTimes.value = 0;
-        selectKey.value = key;
+        selectKey.value = [key];
       }
     }, 250);
   };
 
+  // 重命名
   async function renameHandle(item, data) {
     let path = item.path;
     if (path !== '/') {
@@ -390,6 +502,35 @@
     await fetch();
   }
 
+  // 检查是否视频
+  const checkVedio = (ext) => {
+    if (
+      ext == '.mp4' ||
+      ext == '.mov' ||
+      ext == '.qt' ||
+      ext == '.mpg' ||
+      ext == '.avi' ||
+      ext == '.mod' ||
+      ext == '.flv' ||
+      ext == '.rmvb' ||
+      ext == '.mkv' ||
+      ext == '.rm' ||
+      ext == '.wmv'
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  // 检查是否音频
+  const checkAudio = (ext) => {
+    if (ext == '.wav' || ext == '.mp3' || ext == '.ogg' || ext == '.acc' || ext == '.webm') {
+      return true;
+    }
+    return false;
+  };
+
+  // 文件图标显示
   const imageShow = (item: any) => {
     if (item.is_dir) {
       return '/resource/img/folder.png';

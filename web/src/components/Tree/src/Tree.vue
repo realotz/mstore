@@ -267,6 +267,7 @@
       }
 
       function handleClickNode(key: string, children: TreeItem[]) {
+        console.log(111);
         if (!props.clickRowToExpand || !children || children.length === 0) return;
         if (!state.expandedKeys.includes(key)) {
           setExpandedKeys([...state.expandedKeys, key]);
