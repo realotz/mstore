@@ -74,7 +74,7 @@
                     </div>
                   </template>
                   <div :class="`file-item-box${showType}`">
-                    <img :src="imageShow(item)" />
+                    <img draggable="false" :src="imageShow(item)" />
                     <span>{{ item.name }}</span>
                   </div>
                 </Tooltip>
@@ -99,7 +99,8 @@
   import { computed, onMounted, ref, watch, reactive, onUnmounted } from 'vue';
   import { BasicTable, useTable } from '/@/components/Table';
   import { useContextMenu } from '/@/hooks/web/useContextMenu';
-  import { SelectArea, closeArea } from './components/SelectArea';
+  import { SelectArea, closeArea } from './components/selelct-area/SelectArea';
+  import { ShowMsg, closeMsg } from './components/context-msg/ContextMsg';
   import {
     EditOutlined,
     EllipsisOutlined,
@@ -122,9 +123,9 @@
     Menu,
     Table,
   } from 'ant-design-vue';
-  import { volumeList, fileRename } from '/@/api/mstore/volume';
+  import { volumeList, fileRename, copyMove } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
-  import { getPathInfo } from '/@/utils/filepath';
+  import { getPathInfo, pathFmt } from '/@/utils/filepath';
   import { sizeFmt } from '/@/utils/fmt';
   import { columns } from './FileData';
   import FlieShowType from './components/FileShowType.vue';
@@ -133,8 +134,9 @@
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   import { useModal } from '/@/components/Modal';
   import { useMessage } from '/@/hooks/web/useMessage';
+  import { FileListItem } from './model/volumeModel';
   const [registerRename, { openModal: openRenameModal }] = useModal();
-  const { createMessage } = useMessage();
+  const { createMessage, createConfirm } = useMessage();
   const volumeStore = useVolumeStoreWithOut();
   //每行个数
   const [createContextMenu] = useContextMenu();
@@ -143,7 +145,7 @@
   const loading = ref(false);
   const ListItem = List.Item;
   //数据
-  const data = ref([]);
+  const data: Array<FileListItem> = ref([]);
   const pathState = ref('');
   // 展示类型
   const showType = ref(1);
@@ -273,29 +275,54 @@
     return ContainElement;
   }
   let mouseTime;
+  let selectMove;
 
+  // 鼠标按下事件
   const handleMouseDown = (e: Event) => {
+    if (e.which != 1) {
+      return;
+    }
+    // 选区选中开始 设置个延迟
     mouseTime = setTimeout(function () {
       mouseDown.value = true;
+      mouseComplete.value = false;
+      mouseTime = undefined;
       console.log('鼠标按下');
+      // 拖拽移动
+      if (selectKey.value.length > 0) {
+        const selectFiles = document.querySelectorAll('.file-item-select');
+        for (let i = 0; i < selectFiles.length; i++) {
+          const child = selectFiles[i].getBoundingClientRect();
+          if (
+            e.clientY >= child.top &&
+            e.clientY <= child.top + child.height &&
+            e.clientX >= child.left &&
+            e.clientY <= child.left + child.width
+          ) {
+            selectMove = true;
+            return;
+          }
+        }
+      }
       closeArea();
       selectProps.startPoint.x = e.clientX - 2;
       selectProps.startPoint.y = e.clientY - 2;
       SelectArea(selectProps);
-      mouseDown.value = true;
-      mouseComplete.value = false;
-      mouseTime = undefined;
     }, 250);
   };
 
+  // 选区选中临时存储数据
   let allSelectKey = [];
 
+  // 松开鼠标
   const handleMouseUp = (e: Event) => {
+    if (e.which != 1) {
+      return;
+    }
     if (mouseTime) {
       clearTimeout(mouseTime);
     }
-    console.log('鼠标松开');
-    console.log(allSelectKey);
+    console.log('松开鼠标');
     mouseDown.value = false;
     mouseComplete.value = true;
     selectProps.startPoint.x = 0;
@@ -303,14 +330,84 @@
     selectProps.endPoint.x = 0;
     selectProps.endPoint.y = 0;
     closeArea();
+    closeMsg();
+    console.log(selectMove);
+    if (selectMove && selectKey.value.indexOf(suspensionKey.value) == -1) {
+      let indexs = selectKey.value;
+      const toItem = data.value[suspensionKey.value - 1] as FileListItem;
+      createConfirm({
+        iconType: 'warning',
+        title: '确认',
+        content: `是否将${indexs.length}个文件移动到 ${toItem.name}`,
+        onOk: () => {
+          let files = [];
+          for (let i = 0; i < indexs.length; i++) {
+            console.log(indexs);
+            const item = data.value[indexs[i] - 1];
+            files.push({
+              id: item?.volume_id,
+              path: pathFmt(`${item.path}/${item.name}`),
+            });
+          }
+          // todo move
+          copyMove({
+            files: files,
+            is_delete: true,
+            to_path: pathFmt(`${toItem.path}/${toItem.name}`),
+            to_volume_id: toItem.volume_id,
+          });
+          fetch();
+          emit('resetDir', pathFmt(`/${toItem.volume_id}/${toItem.path}/${files[0].name}`));
+        },
+      });
+    }
     selectKey.value = allSelectKey;
     allSelectKey = [];
+    selectMove = false;
   };
 
+  let msgPorp = reactive({
+    text: '',
+    point: {
+      x: 0,
+      y: 0,
+    },
+  });
+
+  // 鼠标移动
   const handleMouseMove = (e: Event) => {
+    if (e.which != 1) {
+      return;
+    }
+    // 拖动
+    if (selectMove) {
+      if (suspensionKey.value > 0 && selectKey.value.indexOf(suspensionKey.value) == -1) {
+        const item = data.value[suspensionKey.value - 1];
+        if (item.is_dir) {
+          msgPorp.text = `移动到 ${item?.name}`;
+          ShowMsg(msgPorp);
+          msgPorp.point.x = e.clientX + 2;
+          msgPorp.point.y = e.clientY + 2;
+        } else {
+          closeMsg();
+        }
+      } else {
+        closeMsg();
+      }
+      return;
+    }
+    // 选区
     if (mouseDown.value && !mouseComplete.value) {
-      selectProps.endPoint.x = e.clientX - 2;
-      selectProps.endPoint.y = e.clientY - 2;
+      if (selectProps.startPoint.x > selectProps.endPoint.x) {
+        selectProps.endPoint.x = e.clientX + 2;
+      } else {
+        selectProps.endPoint.x = e.clientX - 1;
+      }
+      if (selectProps.startPoint.y > selectProps.endPoint.y) {
+        selectProps.endPoint.y = e.clientY + 2;
+      } else {
+        selectProps.endPoint.y = e.clientY - 1;
+      }
       const div = document.querySelector('#select-area');
       const parent = document.querySelector('.list-body');
       const containDiv = selectElement(parent as HTMLElement, div as HTMLElement);
@@ -325,7 +422,7 @@
   };
 
   // 右键绑定
-  const handleBodyContext = (e) => {
+  const handleBodyContext = (e: Event) => {
     mouseDown.value = false;
     // 有选中元素
     if (suspensionKey.value != 0) {
@@ -360,7 +457,37 @@
   };
 
   // 有元素的时候右键
-  const handleItemContext = (e, key) => {
+  const handleItemContext = (e: Event, key) => {
+    if (selectKey.value.length > 1) {
+      e?.stopPropagation();
+      e?.preventDefault();
+      createContextMenu({
+        event: e,
+        items: [
+          {
+            label: '下载',
+            icon: 'bi:cloud-arrow-down-fill',
+            handler: () => {},
+          },
+          {
+            label: '复制',
+            icon: 'bx:bx-copy-alt',
+            handler: () => {},
+          },
+          {
+            label: '粘贴',
+            icon: 'bx:bx-copy',
+            handler: () => {},
+          },
+          {
+            label: '删除',
+            icon: 'ant-design:delete-filled',
+            handler: () => {},
+          },
+        ],
+      });
+      return;
+    }
     const item = data.value[key - 1];
     let items = [
       {
@@ -457,7 +584,6 @@
   // 文件单击选中
   const selectItem = (key: number) => {
     selectKey.value = [key];
-    console.log(selectKey.value);
     clickTimes.value++;
     if (clickTimes.value === 2) {
       clickTimes.value = 0;
@@ -467,9 +593,9 @@
         volumeStore.addBackPath(props.path);
         volumeStore.resetAdvancePath();
         if (item.path == '/') {
-          emit('selectDir', '/' + item.volume_id + item.path + item.name);
+          emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
         } else {
-          emit('selectDir', '/' + item.volume_id + item.path + '/' + item.name);
+          emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
         }
       }
     }
@@ -494,7 +620,7 @@
     createMessage.success('文件重命名成功');
     fetch();
     openRenameModal(false, {});
-    emit('resetDir', `/${item.volume_id}${item.path}/${data.name}`);
+    emit('resetDir', pathFmt(`/${item.volume_id}/${item.path}/${data.name}`));
   }
 
   //表单提交
@@ -582,23 +708,20 @@
   }
   .file-item2:hover {
     background: #e6f5ff;
-    // border: 1px solid #a6daff;
   }
   .file-item1 {
-    height: 80px;
-    width: 66px;
+    height: 90px;
+    width: 70px;
     display: block;
   }
   .file-item1:hover {
     background: #e6f5ff;
-    // border: 1px solid #a6daff;
   }
   .file-item-box1 {
-    height: 80px;
-    width: 66px;
+    height: 90px;
+    width: 70px;
     text-align: center;
     vertical-align: bottom;
-    display: table-cell;
   }
   .file-item-box1 img {
     max-height: 64px;
@@ -626,7 +749,7 @@
     overflow: hidden;
   }
   .file-item-box1 span {
-    width: 70px;
+    width: 68px;
     font-size: 10px;
     display: -webkit-box;
     -webkit-box-orient: vertical;

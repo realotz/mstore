@@ -84,8 +84,9 @@ func (s *StorageUseCase) MoveFile(ctx context.Context, req *storageV1.MoveCopyFi
 		if v.Id == req.ToVolumeId {
 			volume = newVolume
 		}
+		_, fileName := filepath.Split(v.Path)
 		if req.IsDelete && v.Id == req.ToVolumeId {
-			if err = volume.Provider.Rename(ctx, v.Path, req.ToPath); err != nil {
+			if err = volume.Provider.Rename(ctx, v.Path, filepath.Join(req.ToPath, fileName)); err != nil {
 				return err
 			}
 		} else {
@@ -97,7 +98,6 @@ func (s *StorageUseCase) MoveFile(ctx context.Context, req *storageV1.MoveCopyFi
 			if err != nil {
 				return err
 			}
-			_, fileName := filepath.Split(v.Path)
 			nf, err := newVolume.Provider.Create(ctx, filepath.Join(req.ToPath, fileName))
 			if err != nil {
 				_ = file.Close()

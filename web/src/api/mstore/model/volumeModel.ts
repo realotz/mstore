@@ -16,6 +16,17 @@ export type FileReanmeParams = {
   path: string;
   new_path: string;
 };
+export type FileParams = {
+  id: string;
+  path: string;
+};
+
+export type CopyMoveParams = {
+  files: FileParams[];
+  is_delete: boolean;
+  to_path: string;
+  to_volume_id: string;
+};
 
 export interface VolumeListItem {
   id: string;

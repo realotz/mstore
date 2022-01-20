@@ -41,7 +41,7 @@
           if (v) {
             const paths = v.split('/');
             paths.pop();
-            loadTree(paths.join('/'));
+            loadTree(pathFmt(paths.join('/')));
           }
         },
       );
