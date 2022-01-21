@@ -8,14 +8,16 @@ enum AuthErrorReason {
   // 系统未知错误
   option (errors.default_code) = 500;
   UNKNOWN_ERROR = 0;
+  // 业务错误
+  BUSINESS_ERROR = 3 [(errors.code) = 400];
   // 未登陆
   NOT_LOGIN = 1 [(errors.code) = 401];
   // 无权限
   NOT_AUTHORITY = 2 [(errors.code) = 403];
+  // 资源冲突
+  CONFLICT_ERROR = 8 [(errors.code) = 409];
   // 参数错误
-  BUSINESS_ERROR = 3 [(errors.code) = 400];
-  // 参数错误
-  PARAMS_ERROR = 6 [(errors.code) = 412];
+  PARAMS_ERROR = 6 [(errors.code) = 422];
   // 请求需要先决条件
   PRECONDITION_REQUIRED = 7 [(errors.code) = 428];
 }

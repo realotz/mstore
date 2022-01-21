@@ -78,12 +78,17 @@ message RenameFileReq {
   string path = 2;
   // 文件/目录路径
   string new_path = 3;
+  // 是否覆盖写入
+  bool is_cover = 4;
 }
 
 message MoveCopyFileReq{
   // 文件列表
   repeated FileReq files = 1;
+  // 删除原文件
   bool is_delete = 2;
+  // 覆盖写入
+  bool is_cover = 5;
   // 目标路径
   string to_path = 3;
   // 目标卷ID

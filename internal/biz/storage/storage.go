@@ -65,12 +65,12 @@ func (s *StorageUseCase) DelFile(ctx context.Context, id string, path string) er
 }
 
 // 重命名文件
-func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPath string) error {
+func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPath string, IsCover bool) error {
 	volume, err := s.volumeManager.GetVolume(id)
 	if err != nil {
 		return err
 	}
-	return volume.Provider.Rename(ctx, path, newPath)
+	return volume.Provider.Rename(ctx, path, newPath, IsCover)
 }
 
 // 复制/移动文件
@@ -86,7 +86,7 @@ func (s *StorageUseCase) MoveFile(ctx context.Context, req *storageV1.MoveCopyFi
 		}
 		_, fileName := filepath.Split(v.Path)
 		if req.IsDelete && v.Id == req.ToVolumeId {
-			if err = volume.Provider.Rename(ctx, v.Path, filepath.Join(req.ToPath, fileName)); err != nil {
+			if err = volume.Provider.Rename(ctx, v.Path, filepath.Join(req.ToPath, fileName), req.IsCover); err != nil {
 				return err
 			}
 		} else {

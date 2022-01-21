@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/realotz/mstore/api/errors"
 	"github.com/realotz/mstore/pkg/tusd/filestore"
 	tusd "github.com/tus/tusd/pkg/handler"
 	"io"
@@ -123,9 +124,29 @@ func (p *localProvider) Open(ctx context.Context, fileName string) (io.ReadWrite
 	return os.Open(filepath.Join(p.config.Path, fileName))
 }
 
+func (p *localProvider) PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
 // 重命名文件
-func (p *localProvider) Rename(ctx context.Context, fileName, newName string) error {
-	return os.Rename(filepath.Join(p.config.Path, fileName), filepath.Join(p.config.Path, newName))
+func (p *localProvider) Rename(ctx context.Context, fileName, newName string, isCover bool) error {
+	toPath := filepath.Join(p.config.Path, newName)
+	if p.PathExists(filepath.Join(p.config.Path, newName)) {
+		if isCover {
+			return errors.ErrorConflictError("目录文件已经存在！")
+		} else {
+			_ = os.Remove(toPath)
+		}
+		return errors.ErrorConflictError("目录文件已经存在！")
+	}
+	return os.Rename(filepath.Join(p.config.Path, fileName), toPath)
 }
 
 // 文件列表

@@ -127,7 +127,7 @@ func (s *VolumeService) MoveAndCopyFile(ctx context.Context, req *storageV1.Move
 
 // 重命名文件
 func (s *VolumeService) RenameFile(ctx context.Context, req *storageV1.RenameFileReq) (*v1.Empty, error) {
-	if err := s.uc.RenameFile(ctx, req.Id, req.Path, req.NewPath); err != nil {
+	if err := s.uc.RenameFile(ctx, req.Id, req.Path, req.NewPath, req.IsCover); err != nil {
 		return nil, err
 	}
 	return &v1.Empty{}, nil

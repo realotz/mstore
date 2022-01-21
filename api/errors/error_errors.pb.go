@@ -20,6 +20,15 @@ func ErrorUnknownError(format string, args ...interface{}) *errors.Error {
 	return errors.New(500, AuthErrorReason_UNKNOWN_ERROR.String(), fmt.Sprintf(format, args...))
 }
 
+func IsBusinessError(err error) bool {
+	e := errors.FromError(err)
+	return e.Reason == AuthErrorReason_BUSINESS_ERROR.String() && e.Code == 400
+}
+
+func ErrorBusinessError(format string, args ...interface{}) *errors.Error {
+	return errors.New(400, AuthErrorReason_BUSINESS_ERROR.String(), fmt.Sprintf(format, args...))
+}
+
 func IsNotLogin(err error) bool {
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_NOT_LOGIN.String() && e.Code == 401
@@ -38,22 +47,22 @@ func ErrorNotAuthority(format string, args ...interface{}) *errors.Error {
 	return errors.New(403, AuthErrorReason_NOT_AUTHORITY.String(), fmt.Sprintf(format, args...))
 }
 
-func IsBusinessError(err error) bool {
+func IsConflictError(err error) bool {
 	e := errors.FromError(err)
-	return e.Reason == AuthErrorReason_BUSINESS_ERROR.String() && e.Code == 400
+	return e.Reason == AuthErrorReason_CONFLICT_ERROR.String() && e.Code == 409
 }
 
-func ErrorBusinessError(format string, args ...interface{}) *errors.Error {
-	return errors.New(400, AuthErrorReason_BUSINESS_ERROR.String(), fmt.Sprintf(format, args...))
+func ErrorConflictError(format string, args ...interface{}) *errors.Error {
+	return errors.New(409, AuthErrorReason_CONFLICT_ERROR.String(), fmt.Sprintf(format, args...))
 }
 
 func IsParamsError(err error) bool {
 	e := errors.FromError(err)
-	return e.Reason == AuthErrorReason_PARAMS_ERROR.String() && e.Code == 412
+	return e.Reason == AuthErrorReason_PARAMS_ERROR.String() && e.Code == 422
 }
 
 func ErrorParamsError(format string, args ...interface{}) *errors.Error {
-	return errors.New(412, AuthErrorReason_PARAMS_ERROR.String(), fmt.Sprintf(format, args...))
+	return errors.New(422, AuthErrorReason_PARAMS_ERROR.String(), fmt.Sprintf(format, args...))
 }
 
 func IsPreconditionRequired(err error) bool {

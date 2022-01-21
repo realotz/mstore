@@ -115,6 +115,8 @@ func (m *RenameFileReq) Validate() error {
 
 	// no validation rules for NewPath
 
+	// no validation rules for IsCover
+
 	return nil
 }
 
@@ -196,6 +198,8 @@ func (m *MoveCopyFileReq) Validate() error {
 	}
 
 	// no validation rules for IsDelete
+
+	// no validation rules for IsCover
 
 	// no validation rules for ToPath
 
