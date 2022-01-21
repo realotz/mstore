@@ -139,7 +139,7 @@ func (p *localProvider) PathExists(path string) bool {
 func (p *localProvider) Rename(ctx context.Context, fileName, newName string, isCover bool) error {
 	toPath := filepath.Join(p.config.Path, newName)
 	if p.PathExists(filepath.Join(p.config.Path, newName)) {
-		if isCover {
+		if !isCover {
 			return errors.ErrorConflictError("目录文件已经存在！")
 		} else {
 			_ = os.Remove(toPath)
