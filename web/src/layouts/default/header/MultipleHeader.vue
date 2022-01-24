@@ -79,6 +79,7 @@
           height += TABS_HEIGHT;
         }
         setHeaderHeight(height);
+        console.log(getSplit.value);
         return {
           height: `${height}px`,
         };

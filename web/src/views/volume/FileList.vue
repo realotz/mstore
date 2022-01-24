@@ -52,6 +52,7 @@
         </BasicTable>
         <div class="p-4 list-body" @contextmenu="handleBodyContext" v-if="showType > 0">
           <List
+            :loading="loading"
             :grid="{ gutter: 16, column: showType == 1 ? 12 : 7 }"
             size="small"
             class="p-2"
@@ -328,6 +329,8 @@
   // 选区选中临时存储数据
   let allSelectKey = [];
 
+  let resIndex = 0;
+
   // 松开鼠标
   const handleMouseUp = (e: Event) => {
     if (e.which != 1) {
@@ -406,8 +409,8 @@
               to_path: to_path,
               to_volume_id: to_id,
             });
+            resetPath.value = pathFmt(`/${to_id}/${to_path}/${resIndex++}`);
             fetch();
-            resetPath.value = pathFmt(`/${to_id}/${to_path}/${files[0].name}`);
           },
         });
       }
@@ -756,10 +759,13 @@
   async function fetch() {
     const { path } = props;
     if (path) {
+      loading.value = true;
       const info = getPathInfo(path);
       const res = await volumeList(info[0], {
         path: info[1],
         option: params.value,
+      }).finally(() => {
+        loading.value = false;
       });
       data.value = res.list;
     }

@@ -1,35 +1,34 @@
-import type { ProjectConfig } from '/#/config';
-const setting: ProjectConfig = {
+const setting = {
   showSettingButton: true,
   showDarkModeToggle: true,
-  settingButtonPosition: "auto",
-  permissionMode: "ROUTE_MAPPING",
+  settingButtonPosition: 'auto',
+  permissionMode: 'ROUTE_MAPPING',
   permissionCacheType: 1,
   sessionTimeoutProcessing: 0,
-  themeColor: "#0084f4",
+  themeColor: '#0084f4',
   grayMode: false,
   colorWeak: false,
   fullContent: false,
-  contentMode: "full",
+  contentMode: 'full',
   showLogo: true,
   showFooter: false,
 
   // Header configuration
   headerSetting: {
-    bgColor: "#394664",
+    bgColor: '#394664',
     fixed: true,
     show: true,
-    theme: "dark",
+    theme: 'dark',
     useLockPage: true,
     showFullScreen: true,
     showDoc: true,
     showNotice: true,
-    showSearch: false
+    showSearch: false,
   },
 
   // Menu configuration
   menuSetting: {
-    bgColor: "#ffffff",
+    bgColor: '#ffffff',
     fixed: true,
     collapsed: false,
     collapsedShowTitle: false,
@@ -37,16 +36,16 @@ const setting: ProjectConfig = {
     show: true,
     hidden: false,
     menuWidth: 210,
-    mode: "inline",
-    type: "mix",
-    theme: "light",
-    split: true,
-    topMenuAlign: "center",
-    trigger: "FOOTER",
+    mode: 'inline',
+    type: 'mix',
+    theme: 'light',
+    split: false,
+    topMenuAlign: 'center',
+    trigger: 'FOOTER',
     accordion: true,
     closeMixSidebarOnChange: false,
-    mixSideTrigger: "click",
-    mixSideFixed: false
+    mixSideTrigger: 'click',
+    mixSideFixed: false,
   },
 
   // Multi-label
@@ -56,15 +55,15 @@ const setting: ProjectConfig = {
     canDrag: true,
     showQuick: true,
     showRedo: true,
-    showFold: true
+    showFold: true,
   },
 
   // Transition Setting
   transitionSetting: {
     enable: true,
-    basicTransition: "fade-slide",
+    basicTransition: 'fade-slide',
     openPageLoading: true,
-    openNProgress: false
+    openNProgress: false,
   },
   openKeepAlive: true,
   lockTime: 0,
@@ -74,7 +73,7 @@ const setting: ProjectConfig = {
   useOpenBackTop: true,
   canEmbedIFramePage: true,
   closeMessageOnSwitch: true,
-  removeAllHttpPending: false
+  removeAllHttpPending: false,
 };
 
 export default setting;
