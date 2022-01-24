@@ -1,11 +1,17 @@
 <template>
   <div class="flex h-full">
-    <VolumeTree
-      class="w-1/4 xl:w-1/5"
-      :resetPath="resetPath"
-      @select="handleSelectDir"
-      :path="pathState"
-    />
+    <div class="p-2 h-full w-1/4 xl:w-1/5 m-2 mr-0 overflow-hidden bg-white">
+      <BasicTree
+        title="目录"
+        :clickRowToExpand="false"
+        :treeData="treeData"
+        :load-data="onLoadData"
+        v-model:selectedKeys="selectedKeys"
+        v-model:expandedKeys="expandedKeys"
+        ref="asyncTreeRef"
+        @select="handleSelect"
+      />
+    </div>
     <div class="p-2 h-full w-3/4 xl:w-4/5">
       <div class="h-full bg-white">
         <div class="px-2 flex py-1.5 list-harder">
@@ -105,8 +111,8 @@
 
 <script lang="ts" setup>
   import Breadcrumb from './Breadcrumb.vue';
-  import { computed, onMounted, ref, watch, reactive, onUnmounted } from 'vue';
-  import VolumeTree from './VolumeTree.vue';
+  import { computed, onMounted, ref, unref, watch, reactive, onUnmounted } from 'vue';
+  import { BasicTree, TreeItem } from '/@/components/Tree';
   import { BasicTable, useTable } from '/@/components/Table';
   import { useContextMenu } from '/@/hooks/web/useContextMenu';
   import { SelectArea, closeArea } from './components/selelct-area/SelectArea';
@@ -159,7 +165,6 @@
   const pathState = ref('');
   // 展示类型
   const showType = ref(1);
-  const resetPath = ref('');
   const params = ref({
     order_field: 'name',
     order_desc: false,
@@ -174,15 +179,41 @@
   });
   watch(
     () => props.path,
-    (newv) => {
-      pathState.value = newv;
+    (v) => {
+      if (!v) {
+        return;
+      }
+      pathState.value = v;
       fetch();
+      const paths = v.split('/');
+      let p = '';
+      for (let i = 1; i < paths.length; i++) {
+        p += '/' + paths[i];
+        let f = true;
+        for (let j = 0; j <= expandedKeys.value.length; j++) {
+          if (expandedKeys.value[j] == p) {
+            f = false;
+          }
+        }
+        if (f) {
+          loadTree(p);
+          expandedKeys.value.push(p);
+        }
+      }
+      selectedKeys.value = [v];
+    },
+  );
+  watch(
+    () => volumeStore.getVolumes,
+    (v: string) => {
+      fetchDir();
     },
   );
   //暴露内部方法
   const emit = defineEmits(['selectDir']);
   // 自动请求并暴露内部方法
   onMounted(() => {
+    fetchDir();
     fetch();
     document.body.onselectstart = new Function('return false');
     document.addEventListener('mousedown', handleMouseDown);
@@ -195,6 +226,67 @@
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
   });
+
+  const treeData = ref<TreeItem[]>([]);
+  const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
+  const expandedKeys = ref<string[]>([]);
+  const selectedKeys = ref<string[]>([]);
+
+  // 存储卷列表
+  async function fetchDir() {
+    treeData.value = [];
+    const volumes = volumeStore.getVolumes;
+    volumes.map((item) => {
+      treeData.value.push({
+        title: item.name,
+        key: '/' + item.id,
+        isLeaf: false,
+        children: [],
+      });
+    });
+  }
+
+  async function loadTree(key) {
+    const info = getPathInfo(key);
+    const res = await volumeList(info[0], {
+      type: 2,
+      path: info[1],
+    });
+    const children = res.list.map((item) => {
+      return {
+        title: item.name,
+        key: pathFmt('/' + info[0] + '/' + item.path + '/' + item.name),
+        isLeaf: false,
+        children: [],
+      };
+    });
+    const asyncTreeAction: TreeActionType | null = unref(asyncTreeRef);
+    if (asyncTreeAction) {
+      if (children.length > 0) {
+        asyncTreeAction.updateNodeByKey(key, { children: children });
+      } else {
+        asyncTreeAction.updateNodeByKey(key, { isLeaf: true });
+      }
+      asyncTreeAction.setExpandedKeys([key, ...asyncTreeAction.getExpandedKeys()]);
+    }
+  }
+
+  // 异步展开存储卷
+  async function onLoadData(treeNode) {
+    await loadTree(treeNode.eventKey);
+  }
+
+  function handleSelect(keys) {
+    if (keys[0]) {
+      if (pathState.value != '') {
+        volumeStore.addBackPath(pathState.value);
+        volumeStore.resetAdvancePath();
+      }
+      emit('selectDir', keys[0]);
+    } else {
+      selectedKeys.value = [oldPath.value];
+    }
+  }
 
   // 视图显示
   const handleShowSelect = (key) => {
@@ -302,7 +394,7 @@
       mouseDown.value = true;
       mouseComplete.value = false;
       mouseTime = undefined;
-      console.log('鼠标按下');
+      // console.log('鼠标按下');
       // 拖拽移动
       if (selectKey.value.length > 0) {
         const selectFiles = document.querySelectorAll('.file-item-select');
@@ -339,7 +431,7 @@
     if (mouseTime) {
       clearTimeout(mouseTime);
     }
-    console.log('松开鼠标');
+    // console.log('松开鼠标');
     mouseDown.value = false;
     mouseComplete.value = true;
     selectProps.startPoint.x = 0;
@@ -348,7 +440,7 @@
     selectProps.endPoint.y = 0;
     closeArea();
     closeMsg();
-    console.log(selectMove);
+    // console.log(selectMove);
     if (selectMove) {
       let to_id, to_path, to_name;
       let is_dir = false;
@@ -385,7 +477,7 @@
             item?.volume_id == to_id &&
             (item?.path == to_path || pathFmt(`${item.path}/${item.name}`) == to_path)
           ) {
-            createMessage.error('错误的目标，无非移动到相同目录');
+            createMessage.error('错误的目标，无法移动到相同目录');
             return;
           }
         }
@@ -409,7 +501,8 @@
               to_path: to_path,
               to_volume_id: to_id,
             });
-            resetPath.value = pathFmt(`/${to_id}/${to_path}/${resIndex++}`);
+            loadTree(pathFmt(pathState.value));
+            loadTree(pathFmt(`/${to_id}/${to_path}`));
             fetch();
           },
         });
@@ -693,7 +786,8 @@
     createMessage.success('文件重命名成功');
     fetch();
     openRenameModal(false, {});
-    resetPath.value = pathFmt(`/${toItem.volume_id}/${toItem.path}/${files[0].name}`);
+    loadTree(pathFmt(pathState.value));
+    loadTree(pathFmt(`/${toItem.volume_id}/${toItem.path}`));
   }
 
   //表单提交
