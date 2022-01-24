@@ -139,7 +139,7 @@
     Menu,
     Table,
   } from 'ant-design-vue';
-  import { volumeList, fileRename, copyMove } from '/@/api/mstore/volume';
+  import { volumeList, fileRename, copyMove, delFile } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
   import { getPathInfo, pathFmt } from '/@/utils/filepath';
   import { sizeFmt } from '/@/utils/fmt';
@@ -222,6 +222,7 @@
   });
 
   onUnmounted(() => {
+    document.body.onselectstart = null;
     document.removeEventListener('mousedown', handleMouseDown);
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
@@ -586,6 +587,32 @@
     }
   };
 
+  const delFileHandle = (items) => {
+    if (items.length <= 0) {
+      return;
+    }
+    createConfirm({
+      iconType: 'warning',
+      title: '确认',
+      content: `是否删除这些文件`,
+      onOk: () => {
+        let files = [];
+        for (let i = 0; i < items.length; i++) {
+          files.push({
+            id: items[i]?.volume_id,
+            path: pathFmt(`${items[i].path}/${items[i].name}`),
+          });
+        }
+        // todo move
+        delFile({
+          files: files,
+        });
+        loadTree(pathFmt(pathState.value));
+        fetch();
+      },
+    });
+  };
+
   // 右键绑定
   const handleBodyContext = (e: Event) => {
     mouseDown.value = false;
@@ -621,6 +648,8 @@
     }
   };
 
+  let copyItems = [];
+
   // 有元素的时候右键
   const handleItemContext = (e: Event, key) => {
     if (selectKey.value.length > 1) {
@@ -647,7 +676,12 @@
           {
             label: '删除',
             icon: 'ant-design:delete-filled',
-            handler: () => {},
+            handler: () => {
+              const items = selectKey.value.map((id) => {
+                return unref(data)[id];
+              });
+              delFileHandle(items);
+            },
           },
         ],
       });
@@ -658,7 +692,13 @@
       {
         label: '打开',
         icon: 'bx:bxs-folder-open',
-        handler: () => {},
+        handler: () => {
+          if (item.path == '/') {
+            emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
+          } else {
+            emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
+          }
+        },
       },
       {
         label: '下载',
@@ -675,17 +715,24 @@
       {
         label: '复制',
         icon: 'bx:bx-copy-alt',
-        handler: () => {},
+        handler: () => {
+          copyItems = [item];
+          createMessage.success('复制成功');
+        },
       },
       {
         label: '粘贴',
         icon: 'bx:bx-copy',
-        handler: () => {},
+        handler: () => {
+          //todo  粘贴
+        },
       },
       {
         label: '删除',
         icon: 'ant-design:delete-filled',
-        handler: () => {},
+        handler: () => {
+          delFileHandle([item]);
+        },
       },
     ];
     if (checkVedio(item.ext)) {

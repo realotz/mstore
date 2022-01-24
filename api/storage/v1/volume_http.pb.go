@@ -35,7 +35,7 @@ func RegisterVolumeServiceHTTPServer(s *http.Server, srv VolumeServiceHTTPServer
 	r.DELETE("/api/v1/volume/{id}", _VolumeService_DeleteVolume0_HTTP_Handler(srv))
 	r.GET("/api/v1/volume", _VolumeService_ListVolume0_HTTP_Handler(srv))
 	r.GET("/api/v1/volume/{id}/files", _VolumeService_ListFile0_HTTP_Handler(srv))
-	r.DELETE("/api/v1/volume/{id}/files/del", _VolumeService_DelFile0_HTTP_Handler(srv))
+	r.POST("/api/v1/volume/files/del", _VolumeService_DelFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/volume/files/copy-move", _VolumeService_MoveAndCopyFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/volume/{id}/files/rename", _VolumeService_RenameFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/volume/{id}/down", _VolumeService_FileDown0_HTTP_Handler(srv))
@@ -126,10 +126,7 @@ func _VolumeService_ListFile0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx
 func _VolumeService_DelFile0_HTTP_Handler(srv VolumeServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in DelFileReq
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
+		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		http.SetOperation(ctx, "/api.service.storage.v1.volume.VolumeService/DelFile")
@@ -242,11 +239,11 @@ func (c *VolumeServiceHTTPClientImpl) CreateVolume(ctx context.Context, in *Crea
 
 func (c *VolumeServiceHTTPClientImpl) DelFile(ctx context.Context, in *DelFileReq, opts ...http.CallOption) (*v1.Empty, error) {
 	var out v1.Empty
-	pattern := "/api/v1/volume/{id}/files/del"
-	path := binding.EncodeURL(pattern, in, true)
+	pattern := "/api/v1/volume/files/del"
+	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation("/api.service.storage.v1.volume.VolumeService/DelFile"))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

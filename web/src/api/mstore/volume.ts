@@ -5,6 +5,7 @@ import {
   FileResultModel,
   FileReanmeParams,
   CopyMoveParams,
+  DelFileParams,
 } from './model/volumeModel';
 import { defHttp } from '/@/utils/http/axios';
 
@@ -23,3 +24,6 @@ export const fileRename = (id: String, params: FileReanmeParams) =>
 
 export const copyMove = (params: CopyMoveParams) =>
   defHttp.post<FileResultModel>({ url: Api.Volume + '/files/copy-move', params });
+
+export const delFile = (params: DelFileParams) =>
+  defHttp.post<FileResultModel>({ url: Api.Volume + '/files/del', params: params });

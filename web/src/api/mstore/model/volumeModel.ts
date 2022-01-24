@@ -21,6 +21,10 @@ export type FileParams = {
   path: string;
 };
 
+export type DelFileParams = {
+  files: FileParams[];
+};
+
 export type CopyMoveParams = {
   files: FileParams[];
   is_delete: boolean;

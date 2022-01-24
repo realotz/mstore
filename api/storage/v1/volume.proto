@@ -39,7 +39,8 @@ service VolumeService {
   // 文件删除
   rpc DelFile(DelFileReq)returns(core.v1.Empty){
     option (google.api.http) = {
-      delete: "/api/v1/volume/{id}/files/del",
+      post: "/api/v1/volume/files/del",
+      body: "*"
     };
   }
   // 移动与复制文件
