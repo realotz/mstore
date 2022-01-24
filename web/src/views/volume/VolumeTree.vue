@@ -89,7 +89,7 @@
           treeData.value.push({
             title: item.name,
             key: '/' + item.id,
-            icon: 'home|svg',
+            // icon: 'home|svg',
             isLeaf: false,
             children: [],
           });
@@ -106,7 +106,6 @@
           return {
             title: item.name,
             key: pathFmt('/' + info[0] + '/' + item.path + '/' + item.name),
-            icon: 'home|svg',
             isLeaf: false,
             children: [],
           };

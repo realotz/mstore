@@ -1,19 +1,6 @@
 <template>
   <PageWrapper dense contentFullHeight fixedHeight>
-    <div class="flex h-full">
-      <VolumeTree
-        class="w-1/4 xl:w-1/5"
-        :resetPath="resetPath"
-        @select="handleSelect"
-        :path="pathRef"
-      />
-      <FileList
-        class="w-3/4 xl:w-4/5"
-        @resetDir="resetPathHandle"
-        :path="pathRef"
-        @selectDir="handleSelectDir"
-      />
-    </div>
+    <FileList :path="pathRef" @selectDir="handleSelectDir" />
   </PageWrapper>
 </template>
 <script lang="ts" setup>
@@ -23,7 +10,6 @@
   import { Description, DescItem, useDescription } from '/@/components/Description/index';
   import { getVolumeList } from '/@/api/mstore/volume';
   import FileList from './FileList.vue';
-  import VolumeTree from './VolumeTree.vue';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   const volumeStore = useVolumeStoreWithOut();
 
@@ -39,8 +25,5 @@
   };
   const handleSelect = (key) => {
     pathRef.value = key;
-  };
-  const resetPathHandle = (key) => {
-    resetPath.value = key;
   };
 </script>

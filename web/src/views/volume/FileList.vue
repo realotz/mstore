@@ -1,102 +1,111 @@
 <template>
-  <div class="p-2 h-full">
-    <div class="h-full bg-white">
-      <div class="px-2 flex py-1.5 list-harder">
-        <Space style="width: 90%">
-          <Button value="small" @click="handleBack">
-            <template #icon> <LeftOutlined /></template>
-          </Button>
-          <Button
-            :disabled="!volumeStore.getAdvancePaths || volumeStore.getAdvancePaths.length == 0"
-            value="small"
-            @click="handleAdvance"
-          >
-            <template #icon> <RightOutlined /></template>
-          </Button>
-          <Button value="small">
-            <template #icon> <RedoOutlined /></template>
-          </Button>
-          <Breadcrumb style="width: 600px" :path="pathState" @select="breadSelect" />
-          <!-- <InputSearch enter-button /> -->
-        </Space>
-        <Space style="width: 10%; flex-direction: row-reverse">
-          <FileSort @select="handleSortSelect" />
-          <FlieShowType @select="handleShowSelect" />
-        </Space>
-      </div>
-      <BasicTable
-        v-if="showType == 0"
-        :columns="columns"
-        :dataSource="data"
-        :loading="loading"
-        :pagination="{ pageSize: 100 }"
-        :bordered="true"
-        rowKey="name"
-      >
-        <template #name="{ record }">
-          <Space>
-            <img class="file-item-list-img" :src="imageShow(record)" />
-            <span>{{ record.name }}</span>
-          </Space>
-        </template>
-        <template #size="{ record }">{{ sizeFmt(record.size) }} </template>
-        <template #ext="{ record }">{{ record.ext }} </template>
-        <template #updated_at="{ record }">{{ formatUnixToTime(record.updated_at) }} </template>
-      </BasicTable>
-      <div class="p-4 list-body" @contextmenu="handleBodyContext" v-if="showType > 0">
-        <List
-          :grid="{ gutter: 16, column: showType == 1 ? 12 : 7 }"
-          size="small"
-          class="p-2"
-          :data-source="data"
-        >
-          <template #renderItem="{ item, index }">
-            <ListItem style="text-align: center">
-              <div
-                :indexkey="index + 1"
-                :class="
-                  selectKey.indexOf(index + 1) > -1
-                    ? `file-item-select file-item${showType}`
-                    : `file-item${showType}`
-                "
-                @click="selectItem(index + 1)"
-                @mouseenter="suspensionItem(index + 1)"
-                @mouseleave="outSuspensionItem(index + 1)"
-              >
-                <Tooltip placement="bottom" :mouseEnterDelay="0.8">
-                  <template #title>
-                    <div style="font-size: 10px">
-                      <span>名称{{ item.name }}</span>
-                      <br />
-                      <span>大小：{{ sizeFmt(item.size) }}</span>
-                      <br />
-                      <span>修改日期: {{ formatUnixToTime(item.updated_at) }}</span>
-                    </div>
-                  </template>
-                  <div :class="`file-item-box${showType}`">
-                    <img draggable="false" :src="imageShow(item)" />
-                    <span>{{ item.name }}</span>
-                  </div>
-                </Tooltip>
-              </div>
-            </ListItem>
-          </template>
-        </List>
-      </div>
-    </div>
-    <RenameModel
-      :autoSubmitOnEnter="true"
-      :height="150"
-      :minHeight="10"
-      @register="registerRename"
-      @ok="renameHandle"
+  <div class="flex h-full">
+    <VolumeTree
+      class="w-1/4 xl:w-1/5"
+      :resetPath="resetPath"
+      @select="handleSelectDir"
+      :path="pathState"
     />
+    <div class="p-2 h-full w-3/4 xl:w-4/5">
+      <div class="h-full bg-white">
+        <div class="px-2 flex py-1.5 list-harder">
+          <Space style="width: 90%">
+            <Button value="small" @click="handleBack">
+              <template #icon> <LeftOutlined /></template>
+            </Button>
+            <Button
+              :disabled="!volumeStore.getAdvancePaths || volumeStore.getAdvancePaths.length == 0"
+              value="small"
+              @click="handleAdvance"
+            >
+              <template #icon> <RightOutlined /></template>
+            </Button>
+            <Button value="small">
+              <template #icon> <RedoOutlined /></template>
+            </Button>
+            <Breadcrumb style="width: 600px" :path="pathState" @select="breadSelect" />
+            <!-- <InputSearch enter-button /> -->
+          </Space>
+          <Space style="width: 10%; flex-direction: row-reverse">
+            <FileSort @select="handleSortSelect" />
+            <FlieShowType @select="handleShowSelect" />
+          </Space>
+        </div>
+        <BasicTable
+          v-if="showType == 0"
+          :columns="columns"
+          :dataSource="data"
+          :loading="loading"
+          :pagination="{ pageSize: 100 }"
+          :bordered="true"
+          rowKey="name"
+        >
+          <template #name="{ record }">
+            <Space>
+              <img class="file-item-list-img" :src="imageShow(record)" />
+              <span>{{ record.name }}</span>
+            </Space>
+          </template>
+          <template #size="{ record }">{{ sizeFmt(record.size) }} </template>
+          <template #ext="{ record }">{{ record.ext }} </template>
+          <template #updated_at="{ record }">{{ formatUnixToTime(record.updated_at) }} </template>
+        </BasicTable>
+        <div class="p-4 list-body" @contextmenu="handleBodyContext" v-if="showType > 0">
+          <List
+            :grid="{ gutter: 16, column: showType == 1 ? 12 : 7 }"
+            size="small"
+            class="p-2"
+            :data-source="data"
+          >
+            <template #renderItem="{ item, index }">
+              <ListItem style="text-align: center">
+                <div
+                  :indexkey="index + 1"
+                  :class="
+                    selectKey.indexOf(index + 1) > -1
+                      ? `file-item-select file-item${showType}`
+                      : `file-item${showType}`
+                  "
+                  @click="selectItem(index + 1)"
+                  @mouseenter="suspensionItem(index + 1)"
+                  @mouseleave="outSuspensionItem(index + 1)"
+                >
+                  <Tooltip placement="bottom" :mouseEnterDelay="0.8">
+                    <template #title>
+                      <div style="font-size: 10px">
+                        <span>名称{{ item.name }}</span>
+                        <br />
+                        <span>大小：{{ sizeFmt(item.size) }}</span>
+                        <br />
+                        <span>修改日期: {{ formatUnixToTime(item.updated_at) }}</span>
+                      </div>
+                    </template>
+                    <div :class="`file-item-box${showType}`">
+                      <img draggable="false" :src="imageShow(item)" />
+                      <span>{{ item.name }}</span>
+                    </div>
+                  </Tooltip>
+                </div>
+              </ListItem>
+            </template>
+          </List>
+        </div>
+      </div>
+      <RenameModel
+        :autoSubmitOnEnter="true"
+        :height="150"
+        :minHeight="10"
+        @register="registerRename"
+        @ok="renameHandle"
+      />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
   import Breadcrumb from './Breadcrumb.vue';
   import { computed, onMounted, ref, watch, reactive, onUnmounted } from 'vue';
+  import VolumeTree from './VolumeTree.vue';
   import { BasicTable, useTable } from '/@/components/Table';
   import { useContextMenu } from '/@/hooks/web/useContextMenu';
   import { SelectArea, closeArea } from './components/selelct-area/SelectArea';
@@ -149,6 +158,7 @@
   const pathState = ref('');
   // 展示类型
   const showType = ref(1);
+  const resetPath = ref('');
   const params = ref({
     order_field: 'name',
     order_desc: false,
@@ -169,7 +179,7 @@
     },
   );
   //暴露内部方法
-  const emit = defineEmits(['selectDir', 'resetDir']);
+  const emit = defineEmits(['selectDir']);
   // 自动请求并暴露内部方法
   onMounted(() => {
     fetch();
@@ -188,6 +198,10 @@
   // 视图显示
   const handleShowSelect = (key) => {
     showType.value = key;
+  };
+
+  const handleSelectDir = (key) => {
+    emit('selectDir', key);
   };
 
   // 筛选排序
@@ -332,34 +346,71 @@
     closeArea();
     closeMsg();
     console.log(selectMove);
-    if (selectMove && selectKey.value.indexOf(suspensionKey.value) == -1) {
-      let indexs = selectKey.value;
-      const toItem = data.value[suspensionKey.value - 1] as FileListItem;
-      createConfirm({
-        iconType: 'warning',
-        title: '确认',
-        content: `是否将${indexs.length}个文件移动到 ${toItem.name}`,
-        onOk: () => {
-          let files = [];
-          for (let i = 0; i < indexs.length; i++) {
-            console.log(indexs);
-            const item = data.value[indexs[i] - 1];
-            files.push({
-              id: item?.volume_id,
-              path: pathFmt(`${item.path}/${item.name}`),
-            });
+    if (selectMove) {
+      let to_id, to_path, to_name;
+      let is_dir = false;
+      if (suspensionKey.value) {
+        if (selectKey.value.indexOf(suspensionKey.value) == -1) {
+          const toItem = data.value[suspensionKey.value - 1] as FileListItem;
+          to_id = toItem.volume_id;
+          to_path = pathFmt(`${toItem.path}/${toItem.name}`);
+          is_dir = toItem.is_dir;
+          to_name = toItem.name;
+        }
+      } else if (e.target.getAttribute('indexkey')) {
+        is_dir = true;
+        const info = getPathInfo(e.target.getAttribute('indexkey'));
+        to_id = info[0];
+        to_path = info[1];
+        let paths = e.target.getAttribute('indexkey').split('/');
+        if (paths.length == 2) {
+          for (let i = 0; i < volumeStore.getVolumes.length; i++) {
+            if (volumeStore.getVolumes[i].id == paths[1]) {
+              to_name = volumeStore.getVolumes[i]?.name;
+              break;
+            }
           }
-          // todo move
-          copyMove({
-            files: files,
-            is_delete: true,
-            to_path: pathFmt(`${toItem.path}/${toItem.name}`),
-            to_volume_id: toItem.volume_id,
-          });
-          fetch();
-          emit('resetDir', pathFmt(`/${toItem.volume_id}/${toItem.path}/${files[0].name}`));
-        },
-      });
+        } else {
+          to_name = paths[paths.length - 1];
+        }
+      }
+      let indexs = selectKey.value;
+      if (is_dir) {
+        for (let i = 0; i < indexs.length; i++) {
+          const item = data.value[indexs[i] - 1];
+          if (
+            item?.volume_id == to_id &&
+            (item?.path == to_path || pathFmt(`${item.path}/${item.name}`) == to_path)
+          ) {
+            createMessage.error('错误的目标，无非移动到相同目录');
+            return;
+          }
+        }
+        createConfirm({
+          iconType: 'warning',
+          title: '确认',
+          content: `是否将${indexs.length}个文件移动到 ${to_name}`,
+          onOk: () => {
+            let files = [];
+            for (let i = 0; i < indexs.length; i++) {
+              const item = data.value[indexs[i] - 1];
+              files.push({
+                id: item?.volume_id,
+                path: pathFmt(`${item.path}/${item.name}`),
+              });
+            }
+            // todo move
+            copyMove({
+              files: files,
+              is_delete: true,
+              to_path: to_path,
+              to_volume_id: to_id,
+            });
+            fetch();
+            resetPath.value = pathFmt(`/${to_id}/${to_path}/${files[0].name}`);
+          },
+        });
+      }
     }
     selectKey.value = allSelectKey;
     allSelectKey = [];
@@ -392,7 +443,25 @@
           closeMsg();
         }
       } else {
-        closeMsg();
+        if (e.target.getAttribute('indexkey')) {
+          let path = e.target.getAttribute('indexkey');
+          let paths = path.split('/');
+          if (paths.length == 2) {
+            for (let i = 0; i < volumeStore.getVolumes.length; i++) {
+              if (volumeStore.getVolumes[i].id == paths[1]) {
+                msgPorp.text = `移动到 ${volumeStore.getVolumes[i]?.name}`;
+                break;
+              }
+            }
+          } else {
+            msgPorp.text = `移动到 ${paths[paths.length - 1]}`;
+          }
+          ShowMsg(msgPorp);
+          msgPorp.point.x = e.clientX + 2;
+          msgPorp.point.y = e.clientY + 2;
+        } else {
+          closeMsg();
+        }
       }
       return;
     }
@@ -581,6 +650,7 @@
 
   // 双击判断
   const clickTimes = ref(0);
+
   // 文件单击选中
   const selectItem = (key: number) => {
     selectKey.value = [key];
@@ -620,7 +690,7 @@
     createMessage.success('文件重命名成功');
     fetch();
     openRenameModal(false, {});
-    emit('resetDir', pathFmt(`/${item.volume_id}/${item.path}/${data.name}`));
+    resetPath.value = pathFmt(`/${toItem.volume_id}/${toItem.path}/${files[0].name}`);
   }
 
   //表单提交

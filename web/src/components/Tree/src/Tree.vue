@@ -420,7 +420,8 @@
               {{
                 title: () => (
                   <span
-                    class={`${prefixCls}-title pl-2`}
+                    indexKey={item.key}
+                    class={`${prefixCls}-title pl-2 tree-node-index`}
                     onClick={handleClickNode.bind(null, item[keyField], item[childrenField])}
                   >
                     {item.slots?.title ? (

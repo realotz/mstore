@@ -143,6 +143,7 @@ func (p *localProvider) Rename(ctx context.Context, fileName, newName string, is
 			return errors.ErrorConflictError("目录文件已经存在！")
 		} else {
 			_ = os.Remove(toPath)
+			// todo 覆盖写入
 		}
 		return errors.ErrorConflictError("目录文件已经存在！")
 	}
@@ -241,7 +242,7 @@ func readDir(dirname string) ([]fs.FileInfo, error) {
 	list, err := f.Readdir(-1)
 	_ = f.Close()
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrorBusinessError("找不到该目录")
 	}
 	return list, nil
 }
