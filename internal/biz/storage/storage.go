@@ -74,23 +74,12 @@ func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPat
 	if err != nil {
 		return err
 	}
-	_, fileName := filepath.Split(path)
-	newName := filepath.Join(newPath, fileName)
+	newName := filepath.Join(newPath)
 	if volume.Provider.Exists(ctx, newName) && wireType == 0 {
 		return errors.ErrorConflictError("该目录文件名重复")
 	}
 	if wireType == 1 {
 		_ = volume.Provider.Delete(ctx, newName)
-	}
-	if wireType == 2 {
-		n := 0
-		newName += " copy"
-		sName := ""
-		for !volume.Provider.Exists(ctx, newName+sName) {
-			n++
-			sName = fmt.Sprint(n)
-		}
-		newName = newName + sName
 	}
 	return volume.Provider.Rename(ctx, path, newName)
 }
@@ -135,7 +124,6 @@ func (s *StorageUseCase) MoveFile(ctx context.Context, req *storageV1.MoveCopyFi
 			}
 			newPath := strings.ReplaceAll(path, v.Path, toBasePath)
 			if info.IsDir() {
-				fmt.Println(1222, path, v.Path, toBasePath, newPath)
 				if !volume.Provider.Exists(ctx, newPath) {
 					return volume.Provider.CreateDir(ctx, newPath)
 				} else {

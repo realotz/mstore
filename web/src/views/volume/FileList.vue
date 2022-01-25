@@ -111,7 +111,7 @@
         :width="280"
         :minHeight="10"
         @register="registerCopyinfo"
-        @ok="copyMoveHandle"
+        @ok="confirmCopyMoveHandle"
       />
     </div>
   </div>
@@ -505,16 +505,26 @@
                 path: pathFmt(`${item.path}/${item.name}`),
               });
             }
-            // todo move
-            copyMove({
+            const params = {
               files: files,
               is_delete: true,
               to_path: to_path,
               to_volume_id: to_id,
+            };
+            // todo move
+            copyMove(params, 'none').then((data) => {
+              if (data?.code == 200 || data?.code == undefined) {
+                loadTree(pathFmt(pathState.value));
+                loadTree(pathFmt(`/${to_id}/${to_path}`));
+                fetch();
+                return;
+              }
+              if (data?.code == 409) {
+                openCopyModal(true, params);
+              } else {
+                createMessage.error(data?.message);
+              }
             });
-            loadTree(pathFmt(pathState.value));
-            loadTree(pathFmt(`/${to_id}/${to_path}`));
-            fetch();
           },
         });
       }
@@ -668,7 +678,8 @@
     }
   };
 
-  const copyMoveHandle = (params, wireType) => {
+  // 确认移动/粘贴
+  const confirmCopyMoveHandle = (params, wireType) => {
     const res = copyMove({
       wire_type: wireType,
       ...params,
@@ -678,9 +689,17 @@
     });
   };
 
+  //粘贴操作
   const pasteHandler = () => {
+    if (copyItems.length == 0) {
+      return;
+    }
     const info = getPathInfo(unref(pathState));
+    let is_confirm = false;
     const files = copyItems.map((item) => {
+      if (item.path != info[1]) {
+        is_confirm = true;
+      }
       return {
         id: item?.volume_id,
         path: pathFmt(`${item.path}/${item.name}`),
@@ -693,13 +712,19 @@
       to_volume_id: info[0],
     };
     const res = copyMove(params, 'none').then((data) => {
-      if (data?.code == 200) {
+      if (data?.code == 200 || data?.code == undefined) {
         loadTree(pathFmt(pathState.value));
         fetch();
         return;
       }
       if (data?.code == 409) {
-        openCopyModal(true, params);
+        if (is_confirm) {
+          //不同目录复制询问是否覆盖还是重命名
+          openCopyModal(true, params);
+        } else {
+          //同目录复制直接重命名
+          copyMoveHandle(params, 2);
+        }
       } else {
         createMessage.error(data?.message);
       }
