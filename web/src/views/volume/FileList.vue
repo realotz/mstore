@@ -26,7 +26,7 @@
             >
               <template #icon> <RightOutlined /></template>
             </Button>
-            <Button value="small">
+            <Button value="small" @click="fetch">
               <template #icon> <RedoOutlined /></template>
             </Button>
             <Breadcrumb style="width: 600px" :path="pathState" @select="breadSelect" />
@@ -105,6 +105,14 @@
         @register="registerRename"
         @ok="renameHandle"
       />
+      <CopyInfoModel
+        :autoSubmitOnEnter="true"
+        :height="200"
+        :width="280"
+        :minHeight="10"
+        @register="registerCopyinfo"
+        @ok="copyMoveHandle"
+      />
     </div>
   </div>
 </template>
@@ -146,13 +154,15 @@
   import { columns } from './FileData';
   import FlieShowType from './components/FileShowType.vue';
   import RenameModel from './components/RenameModel.vue';
+  import CopyInfoModel from './components/CopyInfoModel.vue';
   import FileSort from './components/FileSort.vue';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   import { useModal } from '/@/components/Modal';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { FileListItem } from './model/volumeModel';
   const [registerRename, { openModal: openRenameModal }] = useModal();
-  const { createMessage, createConfirm } = useMessage();
+  const [registerCopyinfo, { openModal: openCopyModal }] = useModal();
+  const { createMessage, createConfirm, createInfoModal } = useMessage();
   const volumeStore = useVolumeStoreWithOut();
   //每行个数
   const [createContextMenu] = useContextMenu();
@@ -591,10 +601,14 @@
     if (items.length <= 0) {
       return;
     }
+    let content = `确认删除${items.length}个文件？`;
+    if (items.length == 1) {
+      content = `确认删除【${items[0].name}】?`;
+    }
     createConfirm({
       iconType: 'warning',
       title: '确认',
-      content: `是否删除这些文件`,
+      content: content,
       onOk: () => {
         let files = [];
         for (let i = 0; i < items.length; i++) {
@@ -603,12 +617,12 @@
             path: pathFmt(`${items[i].path}/${items[i].name}`),
           });
         }
-        // todo move
         delFile({
           files: files,
+        }).then((e) => {
+          loadTree(pathFmt(pathState.value));
+          fetch();
         });
-        loadTree(pathFmt(pathState.value));
-        fetch();
       },
     });
   };
@@ -639,6 +653,12 @@
             },
           },
           {
+            label: '粘贴',
+            icon: 'bx:bx-copy',
+            disabled: copyItems.length == 0,
+            handler: pasteHandler,
+          },
+          {
             label: `上传到此目录`,
             icon: 'bi:cloud-upload-fill',
             handler: () => {},
@@ -648,11 +668,54 @@
     }
   };
 
+  const copyMoveHandle = (params, wireType) => {
+    const res = copyMove({
+      wire_type: wireType,
+      ...params,
+    }).then((data) => {
+      loadTree(pathFmt(pathState.value));
+      fetch();
+    });
+  };
+
+  const pasteHandler = () => {
+    const info = getPathInfo(unref(pathState));
+    const files = copyItems.map((item) => {
+      return {
+        id: item?.volume_id,
+        path: pathFmt(`${item.path}/${item.name}`),
+      };
+    });
+    let params = {
+      files: files,
+      is_delete: false,
+      to_path: info[1],
+      to_volume_id: info[0],
+    };
+    const res = copyMove(params, 'none').then((data) => {
+      if (data?.code == 200) {
+        loadTree(pathFmt(pathState.value));
+        fetch();
+        return;
+      }
+      if (data?.code == 409) {
+        openCopyModal(true, params);
+      } else {
+        createMessage.error(data?.message);
+      }
+    });
+  };
+
   let copyItems = [];
 
   // 有元素的时候右键
   const handleItemContext = (e: Event, key) => {
     if (selectKey.value.length > 1) {
+      const items = selectKey.value.map((id) => {
+        return unref(data)[id - 1];
+      });
+      console.log(items);
+      console.log(selectKey.value);
       e?.stopPropagation();
       e?.preventDefault();
       createContextMenu({
@@ -666,20 +729,20 @@
           {
             label: '复制',
             icon: 'bx:bx-copy-alt',
-            handler: () => {},
+            handler: () => {
+              copyItems = items;
+              createMessage.success('复制成功');
+            },
           },
           {
             label: '粘贴',
             icon: 'bx:bx-copy',
-            handler: () => {},
+            handler: pasteHandler,
           },
           {
             label: '删除',
             icon: 'ant-design:delete-filled',
             handler: () => {
-              const items = selectKey.value.map((id) => {
-                return unref(data)[id];
-              });
               delFileHandle(items);
             },
           },
@@ -693,10 +756,13 @@
         label: '打开',
         icon: 'bx:bxs-folder-open',
         handler: () => {
-          if (item.path == '/') {
-            emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
-          } else {
-            emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
+          if (item.is_dir) {
+            volumeStore.addBackPath(props.path);
+            if (item.path == '/') {
+              emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
+            } else {
+              emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
+            }
           }
         },
       },
@@ -723,9 +789,7 @@
       {
         label: '粘贴',
         icon: 'bx:bx-copy',
-        handler: () => {
-          //todo  粘贴
-        },
+        handler: pasteHandler,
       },
       {
         label: '删除',

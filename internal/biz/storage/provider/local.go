@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 type localConfig struct {
@@ -111,7 +112,7 @@ func (p *localProvider) Upload(ctx context.Context, fileName string, data []byte
 
 // 删除文件
 func (p *localProvider) Delete(ctx context.Context, fileName string) error {
-	return os.Remove(filepath.Join(p.config.Path, fileName))
+	return os.RemoveAll(filepath.Join(p.config.Path, fileName))
 }
 
 // 删除文件
@@ -119,12 +120,26 @@ func (p *localProvider) Create(ctx context.Context, fileName string) (io.ReadWri
 	return os.Create(filepath.Join(p.config.Path, fileName))
 }
 
+func (p *localProvider) CreateDir(ctx context.Context, path string) error {
+	return os.MkdirAll(filepath.Join(p.config.Path, path), 0766)
+}
+
 // 打开文件
 func (p *localProvider) Open(ctx context.Context, fileName string) (io.ReadWriteCloser, error) {
+
 	return os.Open(filepath.Join(p.config.Path, fileName))
 }
 
-func (p *localProvider) PathExists(path string) bool {
+// 遍历
+func (p *localProvider) Walk(path string, fn filepath.WalkFunc) error {
+	return filepath.Walk(filepath.Join(p.config.Path, path), func(path string, fi os.FileInfo, err error) error {
+		return fn(strings.ReplaceAll(path, p.config.Path, ""), fi, err)
+	})
+}
+
+//
+func (p *localProvider) Exists(ctx context.Context, path string) bool {
+	path = filepath.Join(p.config.Path, path)
 	_, err := os.Stat(path)
 	if err == nil {
 		return true
@@ -136,17 +151,8 @@ func (p *localProvider) PathExists(path string) bool {
 }
 
 // 重命名文件
-func (p *localProvider) Rename(ctx context.Context, fileName, newName string, isCover bool) error {
+func (p *localProvider) Rename(ctx context.Context, fileName, newName string) error {
 	toPath := filepath.Join(p.config.Path, newName)
-	if p.PathExists(filepath.Join(p.config.Path, newName)) {
-		if !isCover {
-			return errors.ErrorConflictError("目录文件已经存在！")
-		} else {
-			_ = os.Remove(toPath)
-			// todo 覆盖写入
-		}
-		return errors.ErrorConflictError("目录文件已经存在！")
-	}
 	return os.Rename(filepath.Join(p.config.Path, fileName), toPath)
 }
 

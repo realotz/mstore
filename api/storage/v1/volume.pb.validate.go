@@ -199,7 +199,7 @@ func (m *MoveCopyFileReq) Validate() error {
 
 	// no validation rules for IsDelete
 
-	// no validation rules for IsCover
+	// no validation rules for WireType
 
 	// no validation rules for ToPath
 

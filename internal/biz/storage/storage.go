@@ -2,12 +2,16 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/wire"
+	"github.com/realotz/mstore/api/errors"
 	storageV1 "github.com/realotz/mstore/api/storage/v1"
 	"github.com/realotz/mstore/internal/biz/storage/provider"
 	"io"
+	"io/fs"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
 
 var ProviderSet = wire.NewSet(NewVolumeManager, NewStorageUseCase)
@@ -65,12 +69,30 @@ func (s *StorageUseCase) DelFile(ctx context.Context, id string, path string) er
 }
 
 // 重命名文件
-func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPath string, IsCover bool) error {
+func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPath string, wireType uint32) error {
 	volume, err := s.volumeManager.GetVolume(id)
 	if err != nil {
 		return err
 	}
-	return volume.Provider.Rename(ctx, path, newPath, IsCover)
+	_, fileName := filepath.Split(path)
+	newName := filepath.Join(newPath, fileName)
+	if volume.Provider.Exists(ctx, newName) && wireType == 0 {
+		return errors.ErrorConflictError("该目录文件名重复")
+	}
+	if wireType == 1 {
+		_ = volume.Provider.Delete(ctx, newName)
+	}
+	if wireType == 2 {
+		n := 0
+		newName += " copy"
+		sName := ""
+		for !volume.Provider.Exists(ctx, newName+sName) {
+			n++
+			sName = fmt.Sprint(n)
+		}
+		newName = newName + sName
+	}
+	return volume.Provider.Rename(ctx, path, newName)
 }
 
 // 复制/移动文件
@@ -83,32 +105,66 @@ func (s *StorageUseCase) MoveFile(ctx context.Context, req *storageV1.MoveCopyFi
 		var volume *Volume
 		if v.Id == req.ToVolumeId {
 			volume = newVolume
-		}
-		_, fileName := filepath.Split(v.Path)
-		if req.IsDelete && v.Id == req.ToVolumeId {
-			if err = volume.Provider.Rename(ctx, v.Path, filepath.Join(req.ToPath, fileName), req.IsCover); err != nil {
-				return err
-			}
 		} else {
 			volume, err = s.volumeManager.GetVolume(v.Id)
 			if err != nil {
 				return err
 			}
-			file, err := volume.Provider.Open(ctx, v.Path)
-			if err != nil {
-				return err
+		}
+		_, fileName := filepath.Split(v.Path)
+		toBasePath := filepath.Join(req.ToPath, fileName)
+		if volume.Provider.Exists(ctx, toBasePath) && req.WireType == 0 {
+			return errors.ErrorConflictError("该目录文件名重复")
+		}
+		// 重命名
+		if req.WireType == 2 {
+			n := 0
+			toBasePath += " copy"
+			sName := ""
+			for volume.Provider.Exists(ctx, toBasePath+sName) {
+				n++
+				sName = fmt.Sprint(n)
 			}
-			nf, err := newVolume.Provider.Create(ctx, filepath.Join(req.ToPath, fileName))
-			if err != nil {
-				_ = file.Close()
-				return err
+			toBasePath = toBasePath + sName
+
+		}
+		// 覆盖
+		err = volume.Provider.Walk(v.Path, func(path string, info fs.FileInfo, err error) error {
+			if info == nil {
+				return nil
 			}
-			_, err = io.Copy(nf, file)
-			if err != nil {
-				_ = file.Close()
-				_ = nf.Close()
-				return err
+			newPath := strings.ReplaceAll(path, v.Path, toBasePath)
+			if info.IsDir() {
+				fmt.Println(1222, path, v.Path, toBasePath, newPath)
+				if !volume.Provider.Exists(ctx, newPath) {
+					return volume.Provider.CreateDir(ctx, newPath)
+				} else {
+					return nil
+				}
+			} else {
+				if req.IsDelete && v.Id == req.ToVolumeId {
+					return volume.Provider.Rename(ctx, v.Path, newPath)
+				}
+				nf, err := newVolume.Provider.Create(ctx, newPath)
+				if err != nil {
+					return err
+				}
+				file, err := volume.Provider.Open(ctx, path)
+				if err != nil {
+					_ = nf.Close()
+					return err
+				}
+				_, err = io.Copy(nf, file)
+				if err != nil {
+					_ = file.Close()
+					_ = nf.Close()
+					return err
+				}
 			}
+			return nil
+		})
+		if err != nil {
+			return errors.ErrorConflictError(err.Error())
 		}
 	}
 	return nil

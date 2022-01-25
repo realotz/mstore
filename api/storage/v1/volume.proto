@@ -88,8 +88,8 @@ message MoveCopyFileReq{
   repeated FileReq files = 1;
   // 删除原文件
   bool is_delete = 2;
-  // 覆盖写入
-  bool is_cover = 5;
+  // 0 不覆盖 1 覆盖写入 2 重命名同时存在
+  uint32 wire_type = 5;
   // 目标路径
   string to_path = 3;
   // 目标卷ID

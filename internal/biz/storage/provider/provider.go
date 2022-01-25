@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 )
 
 const (
@@ -41,14 +42,20 @@ type VolumeProvider interface {
 	Upload(ctx context.Context, fileName string, data []byte) error
 	// 删除文件
 	Delete(ctx context.Context, fileName string) error
+	// 文件是否存在
+	Exists(ctx context.Context, path string) bool
 	// 打开文件
 	Open(ctx context.Context, name string) (io.ReadWriteCloser, error)
 	// 创建文件
 	Create(ctx context.Context, name string) (io.ReadWriteCloser, error)
+	// 创建文件
+	CreateDir(ctx context.Context, name string) error
+	// 遍历
+	Walk(path string, fn filepath.WalkFunc) error
 	// 文件列表
 	List(ctx context.Context, req ListOption) ([]FileInfo, error)
 	// 重命名
-	Rename(context.Context, string, string, bool) error
+	Rename(context.Context, string, string) error
 }
 
 type FileInfo struct {
