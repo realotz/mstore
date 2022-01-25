@@ -225,6 +225,7 @@
   onMounted(() => {
     fetchDir();
     fetch();
+    document.onkeydown = handleKeydown;
     document.body.onselectstart = new Function('return false');
     document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
@@ -233,6 +234,7 @@
 
   onUnmounted(() => {
     document.body.onselectstart = null;
+    document.onkeydown = null;
     document.removeEventListener('mousedown', handleMouseDown);
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
@@ -242,6 +244,33 @@
   const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
   const expandedKeys = ref<string[]>([]);
   const selectedKeys = ref<string[]>([]);
+
+  const handleKeydown = (e) => {
+    let key = window.event.keyCode;
+    if (!e.altKey && !e.shiftKey && key === 65 && (e.metaKey || e.ctrlKey)) {
+      // 监听ctrl+A组合键
+      // window.event.preventDefault(); //关闭浏览器默认快捷键
+      console.log('crtl+ a组合键');
+    } else if (!e.altKey && !e.shiftKey && key === 83 && (e.metaKey || e.ctrlKey)) {
+      window.event.preventDefault(); //关闭浏览器快捷键
+      console.log('保存');
+    } else if (!e.altKey && !e.shiftKey && key === 67 && (e.metaKey || e.ctrlKey)) {
+      if (selectKey.value.length > 0) {
+        const items = selectKey.value.map((id) => {
+          return unref(data)[id - 1];
+        });
+        copyItems = items;
+        createMessage.success('复制成功');
+      }
+    } else if (!e.altKey && !e.shiftKey && key === 86 && (e.metaKey || e.ctrlKey)) {
+      pasteHandler();
+    } else if (key == 8 || key == 46) {
+      const items = selectKey.value.map((id) => {
+        return unref(data)[id - 1];
+      });
+      delFileHandle(items);
+    }
+  };
 
   // 存储卷列表
   async function fetchDir() {
@@ -723,7 +752,7 @@
           openCopyModal(true, params);
         } else {
           //同目录复制直接重命名
-          copyMoveHandle(params, 2);
+          confirmCopyMoveHandle(params, 2);
         }
       } else {
         createMessage.error(data?.message);
