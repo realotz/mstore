@@ -4,12 +4,12 @@ package api.service.storage.v1.volume;
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 import "api/core/v1/core.proto";
-import "validate/validate.proto";
 option go_package = "github.com/realotz/mstore/api/service/storage/v1;storageV1";
 
 // 虚拟卷
 // 映射本地磁盘目录 远程存储等等
 service VolumeService {
+
   // 创建存储卷
   rpc CreateVolume(CreateVolumeReq)returns(Volume){
     option (google.api.http) = {
@@ -17,12 +17,14 @@ service VolumeService {
       body: "*"
     };
   }
+
   // 删除存储卷
   rpc DeleteVolume(DeleteVolumeReq)returns(core.v1.Empty){
     option (google.api.http) = {
       delete: "/api/v1/volume/{id}",
     };
   }
+
   // 存储卷列表
   rpc ListVolume(ListVolumeReq)returns(ListVolumeReply){
     option (google.api.http) = {
@@ -36,6 +38,15 @@ service VolumeService {
       get: "/api/v1/volume/{id}/files",
     };
   }
+
+  // 创建文件
+  rpc CreateFile(CreateFileReq)returns(core.v1.Empty){
+    option (google.api.http) = {
+      post: "/api/v1/volume/{id}/files",
+      body: "*"
+    };
+  }
+
   // 文件删除
   rpc DelFile(DelFileReq)returns(core.v1.Empty){
     option (google.api.http) = {
@@ -43,6 +54,7 @@ service VolumeService {
       body: "*"
     };
   }
+
   // 移动与复制文件
   rpc MoveAndCopyFile(MoveCopyFileReq)returns(core.v1.Empty){
     option (google.api.http) = {
@@ -50,6 +62,7 @@ service VolumeService {
       body: "*"
     };
   }
+
   // 重命名文件
   rpc RenameFile(RenameFileReq)returns(core.v1.Empty){
     option (google.api.http) = {
@@ -57,12 +70,38 @@ service VolumeService {
       body: "*"
     };
   }
+
   // 获取文件下载地址
-  rpc FileDown(FileReq)returns(core.v1.Empty){
+  rpc FileDown(FileReq)returns(FileDownRes){
     option (google.api.http) = {
-      get: "/api/v1/volume/{id}/down",
+      get: "/api/v1/volume/{id}/files/down",
     };
   }
+
+  // 获取文件下载地址
+  rpc FileData(FileReq)returns(FileDataRes){
+    option (google.api.http) = {
+      get: "/api/v1/files/{id}",
+    };
+  }
+}
+
+message FileDataRes {
+  string name = 1;
+  string data = 2;
+}
+
+message FileDownRes {
+  string url = 1;
+}
+
+message CreateFileReq{
+  // 存储卷id
+  string id = 1;
+  // 文件/目录路径
+  string path = 2;
+  // 是否目录
+  bool is_dir = 3;
 }
 
 message FileReq {

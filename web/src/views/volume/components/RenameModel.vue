@@ -2,7 +2,7 @@
   <BasicModal
     v-bind="$attrs"
     @register="register"
-    title="重命名"
+    :title="title"
     @visible-change="handleVisibleChange"
     @ok="handleSubmit"
   >
@@ -36,6 +36,7 @@
     setup(props, { emit }) {
       const modelRef = ref({});
       const dataRef = ref({});
+      const title = ref('重命名');
       const [registerForm, { getFieldsValue }] = useForm({
         labelWidth: 80,
         schemas,
@@ -50,12 +51,14 @@
       function onDataReceive(data) {
         modelRef.value = { name: data.name };
         dataRef.value = data;
+        title.value = data.title ?? '重命名';
       }
       function handleVisibleChange(v) {
         v && props.userData && nextTick(() => onDataReceive(props.userData));
       }
       function handleSubmit(v) {
-        emit('ok', dataRef.value, getFieldsValue());
+        let data = getFieldsValue();
+        emit('ok', dataRef.value, data);
       }
       return {
         register,
@@ -64,6 +67,7 @@
         model: modelRef,
         handleVisibleChange,
         handleSubmit,
+        title,
       };
     },
   });

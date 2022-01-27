@@ -21,6 +21,11 @@ export type FileParams = {
   path: string;
 };
 
+export type CreateFileParams = {
+  path: string;
+  is_dir: boolean;
+};
+
 export type DelFileParams = {
   files: FileParams[];
 };
@@ -49,6 +54,10 @@ export interface FileListItem {
   size: number;
   updated_at: number;
   volume_id: string;
+}
+
+export interface FileDownResultModel {
+  url: string;
 }
 
 /**

@@ -33,6 +33,213 @@ var (
 	_ = anypb.Any{}
 )
 
+// Validate checks the field values on FileDataRes with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *FileDataRes) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for Data
+
+	return nil
+}
+
+// FileDataResValidationError is the validation error returned by
+// FileDataRes.Validate if the designated constraints aren't met.
+type FileDataResValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FileDataResValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FileDataResValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FileDataResValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FileDataResValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FileDataResValidationError) ErrorName() string { return "FileDataResValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FileDataResValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFileDataRes.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FileDataResValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FileDataResValidationError{}
+
+// Validate checks the field values on FileDownRes with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *FileDownRes) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Url
+
+	return nil
+}
+
+// FileDownResValidationError is the validation error returned by
+// FileDownRes.Validate if the designated constraints aren't met.
+type FileDownResValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FileDownResValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FileDownResValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FileDownResValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FileDownResValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FileDownResValidationError) ErrorName() string { return "FileDownResValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FileDownResValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFileDownRes.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FileDownResValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FileDownResValidationError{}
+
+// Validate checks the field values on CreateFileReq with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *CreateFileReq) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Id
+
+	// no validation rules for Path
+
+	// no validation rules for IsDir
+
+	return nil
+}
+
+// CreateFileReqValidationError is the validation error returned by
+// CreateFileReq.Validate if the designated constraints aren't met.
+type CreateFileReqValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateFileReqValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateFileReqValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateFileReqValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateFileReqValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateFileReqValidationError) ErrorName() string { return "CreateFileReqValidationError" }
+
+// Error satisfies the builtin error interface
+func (e CreateFileReqValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateFileReq.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateFileReqValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateFileReqValidationError{}
+
 // Validate checks the field values on FileReq with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *FileReq) Validate() error {

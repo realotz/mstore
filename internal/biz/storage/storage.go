@@ -68,6 +68,25 @@ func (s *StorageUseCase) DelFile(ctx context.Context, id string, path string) er
 	return volume.Provider.Delete(ctx, path)
 }
 
+// 创建文件或者目录
+func (s *StorageUseCase) CreateFile(ctx context.Context, req *storageV1.CreateFileReq) error {
+	volume, err := s.volumeManager.GetVolume(req.Id)
+	if err != nil {
+		return err
+	}
+	if volume.Provider.Exists(ctx, req.Path) {
+		return errors.ErrorConflictError("文件名重复")
+	}
+	if req.IsDir {
+		return volume.Provider.CreateDir(ctx, req.Path)
+	} else {
+		if f, err := volume.Provider.Create(ctx, req.Path); err == nil {
+			_ = f.Close()
+		}
+		return err
+	}
+}
+
 // 重命名文件
 func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPath string, wireType uint32) error {
 	volume, err := s.volumeManager.GetVolume(id)
@@ -82,6 +101,30 @@ func (s *StorageUseCase) RenameFile(ctx context.Context, id string, path, newPat
 		_ = volume.Provider.Delete(ctx, newName)
 	}
 	return volume.Provider.Rename(ctx, path, newName)
+}
+
+func (s *StorageUseCase) GetFileUrl(ctx context.Context, id, path string) (string, error) {
+	volume, err := s.volumeManager.GetVolume(id)
+	if err != nil {
+		return "", err
+	}
+	return volume.Provider.GetFileUrl(ctx, path)
+}
+
+func (s *StorageUseCase) GetFileData(ctx context.Context, id, path string) (string, error) {
+	volume, err := s.volumeManager.GetVolume(id)
+	if err != nil {
+		return "", err
+	}
+	f, err := volume.Provider.Open(ctx, path)
+	if err != nil {
+		return "", err
+	}
+	b, err := io.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 // 复制/移动文件
@@ -108,14 +151,15 @@ func (s *StorageUseCase) MoveFile(ctx context.Context, req *storageV1.MoveCopyFi
 		// 重命名
 		if req.WireType == 2 {
 			n := 0
+			ext := filepath.Ext(toBasePath)
+			toBasePath = strings.ReplaceAll(toBasePath, ext, "")
 			toBasePath += " copy"
 			sName := ""
-			for volume.Provider.Exists(ctx, toBasePath+sName) {
+			for volume.Provider.Exists(ctx, toBasePath+sName+ext) {
 				n++
 				sName = fmt.Sprint(n)
 			}
-			toBasePath = toBasePath + sName
-
+			toBasePath = toBasePath + sName + ext
 		}
 		// 覆盖
 		err = volume.Provider.Walk(v.Path, func(path string, info fs.FileInfo, err error) error {

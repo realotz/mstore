@@ -138,8 +138,29 @@ func (s *VolumeService) RenameFile(ctx context.Context, req *storageV1.RenameFil
 }
 
 // 获取下载地址
-func (s *VolumeService) FileDown(ctx context.Context, req *storageV1.FileReq) (*v1.Empty, error) {
-	panic("implement me")
+func (s *VolumeService) FileDown(ctx context.Context, req *storageV1.FileReq) (*storageV1.FileDownRes, error) {
+	url, err := s.uc.GetFileUrl(ctx, req.Id, req.Path)
+	if err != nil {
+		return nil, err
+	}
+	return &storageV1.FileDownRes{Url: url}, nil
+}
+
+// 获取文件内容
+func (s *VolumeService) FileData(ctx context.Context, req *storageV1.FileReq) (*storageV1.FileDataRes, error) {
+	data, err := s.uc.GetFileData(ctx, req.Id, req.Path)
+	if err != nil {
+		return nil, err
+	}
+	return &storageV1.FileDataRes{Data: data}, nil
+}
+
+// 创建文件
+func (s *VolumeService) CreateFile(ctx context.Context, req *storageV1.CreateFileReq) (*v1.Empty, error) {
+	if err := s.uc.CreateFile(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.Empty{}, nil
 }
 
 // http 文件上传

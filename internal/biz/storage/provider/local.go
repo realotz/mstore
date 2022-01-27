@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/go-kratos/kratos/v2/transport"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/realotz/mstore/api/errors"
 	"github.com/realotz/mstore/pkg/tusd/filestore"
@@ -10,6 +11,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -31,6 +33,7 @@ func parseConfig(data []byte) (*localConfig, error) {
 
 type localProvider struct {
 	config   *localConfig
+	id       string
 	composer *tusd.StoreComposer
 	handler  *tusd.UnroutedHandler
 }
@@ -57,7 +60,7 @@ func NewLocalProvider(id string, data []byte) (*localProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &localProvider{config: cf, composer: composer, handler: handler}, nil
+	return &localProvider{id: id, config: cf, composer: composer, handler: handler}, nil
 }
 
 func (p *localProvider) GetProviderType() string {
@@ -126,8 +129,15 @@ func (p *localProvider) CreateDir(ctx context.Context, path string) error {
 
 // 打开文件
 func (p *localProvider) Open(ctx context.Context, fileName string) (io.ReadWriteCloser, error) {
-
 	return os.Open(filepath.Join(p.config.Path, fileName))
+}
+
+func (p *localProvider) GetFileUrl(ctx context.Context, path string) (string, error) {
+	host := ""
+	if sc, ok := transport.FromServerContext(ctx); ok {
+		host = sc.Endpoint()
+	}
+	return fmt.Sprintf("%s/api/v1/files/%s?p=%s", host, p.id, url.QueryEscape(path)), nil
 }
 
 // 遍历

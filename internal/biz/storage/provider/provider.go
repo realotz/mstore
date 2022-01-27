@@ -36,6 +36,7 @@ type ListOption struct {
 type VolumeProvider interface {
 	// 供应商类型
 	GetProviderType() string
+	GetFileUrl(ctx context.Context, path string) (string, error)
 	// 大文件上传
 	HttpBigUpload(w http.ResponseWriter, r *http.Request) error
 	// 上传文件

@@ -6,8 +6,8 @@
         :clickRowToExpand="false"
         :treeData="treeData"
         :load-data="onLoadData"
-        v-model:selectedKeys="selectedKeys"
-        v-model:expandedKeys="expandedKeys"
+        v-model:selectedKeys="selectedDirKeys"
+        v-model:expandedKeys="expandedDirKeys"
         ref="asyncTreeRef"
         @select="handleSelect"
       />
@@ -113,6 +113,7 @@
         @register="registerCopyinfo"
         @ok="confirmCopyMoveHandle"
       />
+      <CodeEdit @register="registerCodeEdit" />
     </div>
   </div>
 </template>
@@ -147,7 +148,7 @@
     Menu,
     Table,
   } from 'ant-design-vue';
-  import { volumeList, fileRename, copyMove, delFile } from '/@/api/mstore/volume';
+  import { volumeList, fileRename, copyMove, delFile, createFile } from '/@/api/mstore/volume';
   import { formatUnixToTime } from '/@/utils/dateUtil';
   import { getPathInfo, pathFmt } from '/@/utils/filepath';
   import { sizeFmt } from '/@/utils/fmt';
@@ -155,24 +156,34 @@
   import FlieShowType from './components/FileShowType.vue';
   import RenameModel from './components/RenameModel.vue';
   import CopyInfoModel from './components/CopyInfoModel.vue';
+  import CodeEdit from './components/CodeEdit.vue';
   import FileSort from './components/FileSort.vue';
   import { useVolumeStoreWithOut } from '/@/store/modules/volume';
   import { useModal } from '/@/components/Modal';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { FileListItem } from './model/volumeModel';
+  import { useDrawer } from '/@/components/Drawer';
   const [registerRename, { openModal: openRenameModal }] = useModal();
   const [registerCopyinfo, { openModal: openCopyModal }] = useModal();
   const { createMessage, createConfirm, createInfoModal } = useMessage();
+  const [registerCodeEdit, { openDrawer: openCodeEdit }] = useDrawer();
+
   const volumeStore = useVolumeStoreWithOut();
   //每行个数
   const [createContextMenu] = useContextMenu();
   const grid = ref(12);
+  // 选择文件
   const selectKey = ref([]);
   const loading = ref(false);
   const ListItem = List.Item;
   //数据
   const data: Array<FileListItem> = ref([]);
   const pathState = ref('');
+  // 目录树state
+  const treeData = ref<TreeItem[]>([]);
+  const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
+  const expandedDirKeys = ref<string[]>([]);
+  const selectedDirKeys = ref<string[]>([]);
   // 展示类型
   const showType = ref(1);
   const params = ref({
@@ -200,17 +211,17 @@
       for (let i = 1; i < paths.length; i++) {
         p += '/' + paths[i];
         let f = true;
-        for (let j = 0; j <= expandedKeys.value.length; j++) {
-          if (expandedKeys.value[j] == p) {
+        for (let j = 0; j <= expandedDirKeys.value.length; j++) {
+          if (expandedDirKeys.value[j] == p) {
             f = false;
           }
         }
         if (f) {
           loadTree(p);
-          expandedKeys.value.push(p);
+          expandedDirKeys.value.push(p);
         }
       }
-      selectedKeys.value = [v];
+      selectedDirKeys.value = [v];
     },
   );
   watch(
@@ -240,17 +251,12 @@
     document.removeEventListener('mouseup', handleMouseUp);
   });
 
-  const treeData = ref<TreeItem[]>([]);
-  const asyncTreeRef = ref<Nullable<TreeActionType>>(null);
-  const expandedKeys = ref<string[]>([]);
-  const selectedKeys = ref<string[]>([]);
-
   const handleKeydown = (e) => {
     let key = window.event.keyCode;
     if (!e.altKey && !e.shiftKey && key === 65 && (e.metaKey || e.ctrlKey)) {
-      // 监听ctrl+A组合键
-      // window.event.preventDefault(); //关闭浏览器默认快捷键
-      console.log('crtl+ a组合键');
+      selectKey.value = unref(data).map((item, index) => {
+        return index + 1;
+      });
     } else if (!e.altKey && !e.shiftKey && key === 83 && (e.metaKey || e.ctrlKey)) {
       window.event.preventDefault(); //关闭浏览器快捷键
       console.log('保存');
@@ -324,7 +330,7 @@
       }
       emit('selectDir', keys[0]);
     } else {
-      selectedKeys.value = [oldPath.value];
+      selectedDirKeys.value = [pathState.value];
     }
   }
 
@@ -412,15 +418,32 @@
     canCheckedElements: Array<HTMLElement>,
   ) {
     const ContainElement: Array<HTMLElement> = [];
-    const { left, right, bottom, top } = selectBoxElement.getBoundingClientRect();
+    const selectbox = selectBoxElement.getBoundingClientRect();
     canCheckedElements.forEach((item) => {
       const child = item.getBoundingClientRect();
-      if (child.left > left && child.top > top && child.bottom < bottom && child.right < right) {
+      if (isOverlap(selectbox, child)) {
         ContainElement.push(item);
       }
     });
     return ContainElement;
   }
+
+  function isOverlap(obj1Rect, obj2Rect) {
+    var mL = obj1Rect.left;
+    var mR = obj1Rect.right;
+    var mB = obj1Rect.bottom;
+    var mT = obj1Rect.top;
+    var lL = obj2Rect.left;
+    var lR = obj2Rect.right;
+    var lB = obj2Rect.bottom;
+    var lT = obj2Rect.top;
+    if (mL > lR || lL > mR || mT > lB || lT > mB) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   let mouseTime;
   let selectMove;
 
@@ -681,14 +704,24 @@
             label: '新建文件',
             icon: 'bi:plus',
             handler: () => {
-              createMessage.success('click new');
+              openRenameModal(true, {
+                name: '',
+                title: '新建文件',
+                is_dir: false,
+                is_new: true,
+              });
             },
           },
           {
             label: '新建文件夹',
             icon: 'bi:plus',
             handler: () => {
-              createMessage.success('click new');
+              openRenameModal(true, {
+                name: '',
+                title: '新建文件夹',
+                is_dir: true,
+                is_new: true,
+              });
             },
           },
           {
@@ -762,6 +795,25 @@
 
   let copyItems = [];
 
+  const openFile = (item) => {
+    if (item.is_dir) {
+      volumeStore.addBackPath(props.path);
+      volumeStore.resetAdvancePath();
+      if (item.path == '/') {
+        emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
+      } else {
+        emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
+      }
+    } else if (
+      item.ext == '.json' ||
+      item.ext == '.vue' ||
+      item.ext == '.js' ||
+      item.ext == '.txt'
+    ) {
+      openCodeEdit(true, item);
+    }
+  };
+
   // 有元素的时候右键
   const handleItemContext = (e: Event, key) => {
     if (selectKey.value.length > 1) {
@@ -810,14 +862,7 @@
         label: '打开',
         icon: 'bx:bxs-folder-open',
         handler: () => {
-          if (item.is_dir) {
-            volumeStore.addBackPath(props.path);
-            if (item.path == '/') {
-              emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
-            } else {
-              emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
-            }
-          }
+          openFile(item);
         },
       },
       {
@@ -920,15 +965,16 @@
       clickTimes.value = 0;
       selectKey.value = [];
       const item = data.value[key - 1];
-      if (item.is_dir) {
-        volumeStore.addBackPath(props.path);
-        volumeStore.resetAdvancePath();
-        if (item.path == '/') {
-          emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
-        } else {
-          emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
-        }
-      }
+      openFile(item);
+      // if (item.is_dir) {
+      //   volumeStore.addBackPath(props.path);
+      //   volumeStore.resetAdvancePath();
+      //   if (item.path == '/') {
+      //     emit('selectDir', pathFmt('/' + item.volume_id + item.path + item.name));
+      //   } else {
+      //     emit('selectDir', pathFmt('/' + item.volume_id + item.path + '/' + item.name));
+      //   }
+      // }
     }
     setTimeout(function () {
       if (clickTimes.value === 1) {
@@ -940,19 +986,34 @@
 
   // 重命名
   async function renameHandle(item, data) {
-    let path = item.path;
-    if (path !== '/') {
-      path = path + '/';
+    if (item.is_new) {
+      console.log(data, item, props.path);
+      const info = getPathInfo(props.path);
+      const res = await createFile(info[0], {
+        path: pathFmt(info[1] + '/' + data.name),
+        is_dir: item.is_dir,
+      }).then(() => {
+        createMessage.success('创建成功');
+        fetch();
+        openRenameModal(false, {});
+        loadTree(pathFmt(pathState.value));
+      });
+    } else {
+      let path = item.path;
+      if (path !== '/') {
+        path = path + '/';
+      }
+      const res = await fileRename(item.volume_id, {
+        path: path + item.name,
+        new_path: path + data.name,
+      }).then(() => {
+        createMessage.success('文件重命名成功');
+        fetch();
+        openRenameModal(false, {});
+        loadTree(pathFmt(pathState.value));
+        loadTree(pathFmt(`/${toItem.volume_id}/${toItem.path}`));
+      });
     }
-    const res = await fileRename(item.volume_id, {
-      path: path + item.name,
-      new_path: path + data.name,
-    });
-    createMessage.success('文件重命名成功');
-    fetch();
-    openRenameModal(false, {});
-    loadTree(pathFmt(pathState.value));
-    loadTree(pathFmt(`/${toItem.volume_id}/${toItem.path}`));
   }
 
   //表单提交

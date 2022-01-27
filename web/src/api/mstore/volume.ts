@@ -6,6 +6,9 @@ import {
   FileReanmeParams,
   CopyMoveParams,
   DelFileParams,
+  CreateFileParams,
+  FileParams,
+  FileDownResultModel,
 } from './model/volumeModel';
 import { defHttp } from '/@/utils/http/axios';
 import { ErrorMessageMode } from '/#/axios';
@@ -22,6 +25,9 @@ export const volumeList = (id: String, params?: ListFileParams) =>
 export const fileRename = (id: String, params: FileReanmeParams) =>
   defHttp.post<FileResultModel>({ url: Api.Volume + '/' + id + '/files/rename', params });
 
+export const createFile = (id: String, params: CreateFileParams) =>
+  defHttp.post<FileResultModel>({ url: Api.Volume + '/' + id + '/files', params });
+
 export const copyMove = (params: CopyMoveParams, mode: ErrorMessageMode = 'modal') =>
   defHttp.post<FileResultModel>(
     { url: Api.Volume + '/files/copy-move', params },
@@ -32,3 +38,6 @@ export const copyMove = (params: CopyMoveParams, mode: ErrorMessageMode = 'modal
 
 export const delFile = (params: DelFileParams) =>
   defHttp.post<FileResultModel>({ url: Api.Volume + '/files/del', params: params });
+
+export const downUrl = (id: String, params: FileParams) =>
+  defHttp.get<FileDownResultModel>({ url: Api.Volume + '/' + id + '/files/down', params });
