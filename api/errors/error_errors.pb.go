@@ -12,6 +12,9 @@ import (
 const _ = errors.SupportPackageIsVersion1
 
 func IsUnknownError(err error) bool {
+	if err == nil {
+		return false
+	}
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_UNKNOWN_ERROR.String() && e.Code == 500
 }
@@ -21,6 +24,9 @@ func ErrorUnknownError(format string, args ...interface{}) *errors.Error {
 }
 
 func IsBusinessError(err error) bool {
+	if err == nil {
+		return false
+	}
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_BUSINESS_ERROR.String() && e.Code == 400
 }
@@ -30,6 +36,9 @@ func ErrorBusinessError(format string, args ...interface{}) *errors.Error {
 }
 
 func IsNotLogin(err error) bool {
+	if err == nil {
+		return false
+	}
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_NOT_LOGIN.String() && e.Code == 401
 }
@@ -39,6 +48,9 @@ func ErrorNotLogin(format string, args ...interface{}) *errors.Error {
 }
 
 func IsNotAuthority(err error) bool {
+	if err == nil {
+		return false
+	}
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_NOT_AUTHORITY.String() && e.Code == 403
 }
@@ -48,6 +60,9 @@ func ErrorNotAuthority(format string, args ...interface{}) *errors.Error {
 }
 
 func IsConflictError(err error) bool {
+	if err == nil {
+		return false
+	}
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_CONFLICT_ERROR.String() && e.Code == 409
 }
@@ -57,6 +72,9 @@ func ErrorConflictError(format string, args ...interface{}) *errors.Error {
 }
 
 func IsParamsError(err error) bool {
+	if err == nil {
+		return false
+	}
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_PARAMS_ERROR.String() && e.Code == 422
 }
@@ -66,6 +84,9 @@ func ErrorParamsError(format string, args ...interface{}) *errors.Error {
 }
 
 func IsPreconditionRequired(err error) bool {
+	if err == nil {
+		return false
+	}
 	e := errors.FromError(err)
 	return e.Reason == AuthErrorReason_PRECONDITION_REQUIRED.String() && e.Code == 428
 }

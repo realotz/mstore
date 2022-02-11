@@ -46,6 +46,13 @@ service VolumeService {
       body: "*"
     };
   }
+  // 保存文件内容用于文本保存
+  rpc SaveFile(SaveFileReq)returns(core.v1.Empty){
+    option (google.api.http) = {
+      put: "/api/v1/volume/{id}/files",
+      body: "*"
+    };
+  }
 
   // 文件删除
   rpc DelFile(DelFileReq)returns(core.v1.Empty){
@@ -93,6 +100,16 @@ message FileDataRes {
 
 message FileDownRes {
   string url = 1;
+}
+
+// 保存文件
+message SaveFileReq{
+  // 存储卷id
+  string id = 1;
+  // 文件/目录路径
+  string path = 2;
+  // 文件数据
+  string data=3;
 }
 
 message CreateFileReq{

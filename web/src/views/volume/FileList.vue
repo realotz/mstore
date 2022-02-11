@@ -259,7 +259,6 @@
       });
     } else if (!e.altKey && !e.shiftKey && key === 83 && (e.metaKey || e.ctrlKey)) {
       window.event.preventDefault(); //关闭浏览器快捷键
-      console.log('保存');
     } else if (!e.altKey && !e.shiftKey && key === 67 && (e.metaKey || e.ctrlKey)) {
       if (selectKey.value.length > 0) {
         const items = selectKey.value.map((id) => {
@@ -808,6 +807,7 @@
       item.ext == '.json' ||
       item.ext == '.vue' ||
       item.ext == '.js' ||
+      item.ext == '.ts' ||
       item.ext == '.txt'
     ) {
       openCodeEdit(true, item);

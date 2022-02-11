@@ -36,7 +36,7 @@ const setting = {
     show: true,
     hidden: false,
     menuWidth: 210,
-    mode: 'inline',
+    mode: 'top-menu',
     type: 'mix',
     theme: 'light',
     split: false,

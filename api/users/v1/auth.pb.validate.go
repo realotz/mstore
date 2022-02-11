@@ -11,6 +11,7 @@ import (
 	"net/mail"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -31,41 +32,88 @@ var (
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
+	_ = sort.Sort
 )
 
 // Validate checks the field values on NewPasswdReq with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
 func (m *NewPasswdReq) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on NewPasswdReq with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in NewPasswdReqMultiError, or
+// nil if none found.
+func (m *NewPasswdReq) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *NewPasswdReq) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
+	var errors []error
+
 	if utf8.RuneCountInString(m.GetAccount()) < 4 {
-		return NewPasswdReqValidationError{
+		err := NewPasswdReqValidationError{
 			field:  "Account",
 			reason: "value length must be at least 4 runes",
 		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if utf8.RuneCountInString(m.GetPasswd()) < 6 {
-		return NewPasswdReqValidationError{
+		err := NewPasswdReqValidationError{
 			field:  "Passwd",
 			reason: "value length must be at least 6 runes",
 		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if utf8.RuneCountInString(m.GetPasswdConfirm()) < 6 {
-		return NewPasswdReqValidationError{
+		err := NewPasswdReqValidationError{
 			field:  "PasswdConfirm",
 			reason: "value length must be at least 6 runes",
 		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	// no validation rules for OldPasswd
 
+	if len(errors) > 0 {
+		return NewPasswdReqMultiError(errors)
+	}
+
 	return nil
 }
+
+// NewPasswdReqMultiError is an error wrapping multiple validation errors
+// returned by NewPasswdReq.ValidateAll() if the designated constraints aren't met.
+type NewPasswdReqMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m NewPasswdReqMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m NewPasswdReqMultiError) AllErrors() []error { return m }
 
 // NewPasswdReqValidationError is the validation error returned by
 // NewPasswdReq.Validate if the designated constraints aren't met.
@@ -122,17 +170,51 @@ var _ interface {
 } = NewPasswdReqValidationError{}
 
 // Validate checks the field values on LoginToken with the rules defined in the
-// proto definition for this message. If any rules are violated, an error is returned.
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
 func (m *LoginToken) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on LoginToken with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in LoginTokenMultiError, or
+// nil if none found.
+func (m *LoginToken) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LoginToken) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
+
+	var errors []error
 
 	// no validation rules for Token
 
 	// no validation rules for TokenExpires
 
-	if v, ok := interface{}(m.GetUserInfo()).(interface{ Validate() error }); ok {
+	if all {
+		switch v := interface{}(m.GetUserInfo()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, LoginTokenValidationError{
+					field:  "UserInfo",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, LoginTokenValidationError{
+					field:  "UserInfo",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUserInfo()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return LoginTokenValidationError{
 				field:  "UserInfo",
@@ -142,8 +224,28 @@ func (m *LoginToken) Validate() error {
 		}
 	}
 
+	if len(errors) > 0 {
+		return LoginTokenMultiError(errors)
+	}
+
 	return nil
 }
+
+// LoginTokenMultiError is an error wrapping multiple validation errors
+// returned by LoginToken.ValidateAll() if the designated constraints aren't met.
+type LoginTokenMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LoginTokenMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LoginTokenMultiError) AllErrors() []error { return m }
 
 // LoginTokenValidationError is the validation error returned by
 // LoginToken.Validate if the designated constraints aren't met.
@@ -200,17 +302,36 @@ var _ interface {
 } = LoginTokenValidationError{}
 
 // Validate checks the field values on LoginReq with the rules defined in the
-// proto definition for this message. If any rules are violated, an error is returned.
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
 func (m *LoginReq) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on LoginReq with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in LoginReqMultiError, or nil
+// if none found.
+func (m *LoginReq) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LoginReq) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
+	var errors []error
+
 	if utf8.RuneCountInString(m.GetAccount()) < 4 {
-		return LoginReqValidationError{
+		err := LoginReqValidationError{
 			field:  "Account",
 			reason: "value length must be at least 4 runes",
 		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	// no validation rules for Passwd
@@ -219,8 +340,28 @@ func (m *LoginReq) Validate() error {
 
 	// no validation rules for Uuid
 
+	if len(errors) > 0 {
+		return LoginReqMultiError(errors)
+	}
+
 	return nil
 }
+
+// LoginReqMultiError is an error wrapping multiple validation errors returned
+// by LoginReq.ValidateAll() if the designated constraints aren't met.
+type LoginReqMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LoginReqMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LoginReqMultiError) AllErrors() []error { return m }
 
 // LoginReqValidationError is the validation error returned by
 // LoginReq.Validate if the designated constraints aren't met.
@@ -277,16 +418,51 @@ var _ interface {
 } = LoginReqValidationError{}
 
 // Validate checks the field values on CaptchaReq with the rules defined in the
-// proto definition for this message. If any rules are violated, an error is returned.
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
 func (m *CaptchaReq) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CaptchaReq with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in CaptchaReqMultiError, or
+// nil if none found.
+func (m *CaptchaReq) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CaptchaReq) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
+	var errors []error
+
 	// no validation rules for Uuid
+
+	if len(errors) > 0 {
+		return CaptchaReqMultiError(errors)
+	}
 
 	return nil
 }
+
+// CaptchaReqMultiError is an error wrapping multiple validation errors
+// returned by CaptchaReq.ValidateAll() if the designated constraints aren't met.
+type CaptchaReqMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CaptchaReqMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CaptchaReqMultiError) AllErrors() []error { return m }
 
 // CaptchaReqValidationError is the validation error returned by
 // CaptchaReq.Validate if the designated constraints aren't met.
@@ -343,17 +519,51 @@ var _ interface {
 } = CaptchaReqValidationError{}
 
 // Validate checks the field values on CaptchaReply with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
 func (m *CaptchaReply) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CaptchaReply with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in CaptchaReplyMultiError, or
+// nil if none found.
+func (m *CaptchaReply) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CaptchaReply) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
+	var errors []error
+
 	// no validation rules for ImgBase64
+
+	if len(errors) > 0 {
+		return CaptchaReplyMultiError(errors)
+	}
 
 	return nil
 }
+
+// CaptchaReplyMultiError is an error wrapping multiple validation errors
+// returned by CaptchaReply.ValidateAll() if the designated constraints aren't met.
+type CaptchaReplyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CaptchaReplyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CaptchaReplyMultiError) AllErrors() []error { return m }
 
 // CaptchaReplyValidationError is the validation error returned by
 // CaptchaReply.Validate if the designated constraints aren't met.

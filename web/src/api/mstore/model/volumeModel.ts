@@ -26,6 +26,11 @@ export type CreateFileParams = {
   is_dir: boolean;
 };
 
+export type SaveFileParams = {
+  path: string;
+  data: string;
+};
+
 export type DelFileParams = {
   files: FileParams[];
 };

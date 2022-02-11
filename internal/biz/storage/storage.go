@@ -68,6 +68,21 @@ func (s *StorageUseCase) DelFile(ctx context.Context, id string, path string) er
 	return volume.Provider.Delete(ctx, path)
 }
 
+//
+func (s *StorageUseCase) PutFile(ctx context.Context, req *storageV1.SaveFileReq) error {
+	volume, err := s.volumeManager.GetVolume(req.Id)
+	if err != nil {
+		return err
+	}
+	if !volume.Provider.Exists(ctx, req.Path) {
+		return errors.ErrorConflictError("文件不存在")
+	}
+	if err := volume.Provider.Upload(ctx, req.Path, []byte(req.Data)); err != nil {
+		return errors.ErrorBusinessError(err.Error())
+	}
+	return err
+}
+
 // 创建文件或者目录
 func (s *StorageUseCase) CreateFile(ctx context.Context, req *storageV1.CreateFileReq) error {
 	volume, err := s.volumeManager.GetVolume(req.Id)

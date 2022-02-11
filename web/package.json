@@ -42,6 +42,7 @@
     "codemirror": "^5.65.1",
     "crypto-js": "^4.1.1",
     "echarts": "^5.2.2",
+    "js-md5": "^0.7.3",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.1",
     "nprogress": "^0.2.0",

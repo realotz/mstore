@@ -101,14 +101,16 @@ func (p *localProvider) Exist(ctx context.Context, fileName string) bool {
 func (p *localProvider) Upload(ctx context.Context, fileName string, data []byte) error {
 	var f *os.File
 	var err error
+	fileName = filepath.Join(p.config.Path, fileName)
 	if p.Exist(ctx, fileName) {
-		f, err = os.OpenFile(fileName, os.O_APPEND, 0666)
+		f, err = os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	} else {
 		f, err = os.Create(fileName)
 	}
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	_, err = f.Write(data)
 	return err
 }

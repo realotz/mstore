@@ -163,6 +163,14 @@ func (s *VolumeService) CreateFile(ctx context.Context, req *storageV1.CreateFil
 	return &v1.Empty{}, nil
 }
 
+// 创建文件
+func (s *VolumeService) SaveFile(ctx context.Context, req *storageV1.SaveFileReq) (*v1.Empty, error) {
+	if err := s.uc.PutFile(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.Empty{}, nil
+}
+
 // http 文件上传
 func (s *VolumeService) ServeHTTP(w http2.ResponseWriter, r *http2.Request) {
 	paths := strings.Split(r.URL.String(), "/")

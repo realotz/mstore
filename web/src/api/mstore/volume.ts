@@ -9,6 +9,7 @@ import {
   CreateFileParams,
   FileParams,
   FileDownResultModel,
+  SaveFileParams,
 } from './model/volumeModel';
 import { defHttp } from '/@/utils/http/axios';
 import { ErrorMessageMode } from '/#/axios';
@@ -35,6 +36,9 @@ export const copyMove = (params: CopyMoveParams, mode: ErrorMessageMode = 'modal
       errorMessageMode: mode,
     },
   );
+
+export const saveFile = (id: String, params: SaveFileParams) =>
+  defHttp.put<FileResultModel>({ url: Api.Volume + '/' + id + '/files', params });
 
 export const delFile = (params: DelFileParams) =>
   defHttp.post<FileResultModel>({ url: Api.Volume + '/files/del', params: params });
